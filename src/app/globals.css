@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-azul: #1B365D;
+  --color-marino: #0F2440;
+  --color-arena: #F5F0EB;
+  --color-tiza: #E8E2DC;
+  --color-dorado: #C4972A;
+  --color-piedra: #6B7280;
+  --color-tinta: #000000;
+  --color-surface: var(--color-arena);
+  --color-border: var(--color-tiza);
+  --font-sans: "Work Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Sen", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-tiza);
+  }
+
+  body {
+    background-color: var(--color-arena);
+    color: var(--color-azul);
+    font-family: var(--font-sans);
+  }
+
+  ::selection {
+    background-color: var(--color-dorado);
+    color: white;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-dorado);
+    outline-offset: 2px;
+  }
+}
+
+@utility topo-line {
+  position: relative;
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background:
+      repeating-linear-gradient(
+        90deg,
+        transparent 0px,
+        transparent 8px,
+        var(--color-piedra) 8px,
+        var(--color-piedra) 9px,
+        transparent 9px,
+        transparent 16px,
+        var(--color-piedra) 16px,
+        var(--color-piedra) 17px
+      );
+    opacity: 0.15;
+    mask-image: radial-gradient(ellipse 60% 100% at 50% 0%, black 30%, transparent 70%);
+    -webkit-mask-image: radial-gradient(ellipse 60% 100% at 50% 0%, black 30%, transparent 70%);
+  }
+}
+
+@utility topo-rule {
+  height: 1px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      var(--color-piedra) 0px,
+      var(--color-piedra) 2px,
+      transparent 2px,
+      transparent 6px
+    );
+  opacity: 0.2;
+}
+
+@utility card-border {
+  border: 1px solid var(--color-tiza);
+  transition: border-color 0.2s ease;
+  &:hover {
+    border-color: var(--color-dorado);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
