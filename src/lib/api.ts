@@ -44,6 +44,7 @@ export interface Source {
   slug: string;
   baseUrl: string;
   scraperType: string;
+  category: string;
   isActive: boolean;
   lastScraped: string | null;
   createdAt: string;
