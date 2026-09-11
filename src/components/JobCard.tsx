@@ -14,6 +14,7 @@ interface JobCardProps {
   sourceName: string;
   sourceSlug: string;
   sourceLogoUrl?: string | null;
+  backUrl?: string;
 }
 
 function formatDate(dateStr: string | null): string | null {
@@ -39,10 +40,13 @@ export default function JobCard({
   deadline,
   sourceName,
   sourceLogoUrl,
+  backUrl,
 }: JobCardProps) {
+  const href = `/ofertas/${id}${backUrl ? `?from=${encodeURIComponent(backUrl)}` : ''}`;
+
   return (
     <Link
-      href={`/ofertas/${id}`}
+      href={href}
       className="block bg-arena border border-tiza rounded-lg p-5 hover:border-dorado transition-colors"
     >
       <div className="flex items-start justify-between gap-4">

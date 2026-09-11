@@ -1,5 +1,7 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+
 interface FilterOption {
   value: string;
   label: string;
@@ -16,6 +18,18 @@ interface FiltersBarProps {
   selectedCategory?: string;
 }
 
+function buildUrl(key: string, value: string) {
+  const sp = new URLSearchParams(window.location.search);
+  if (value) {
+    sp.set(key, value);
+  } else {
+    sp.delete(key);
+  }
+  sp.delete('page');
+  const qs = sp.toString();
+  return `/ofertas${qs ? '?' + qs : ''}`;
+}
+
 export default function FiltersBar({
   sources,
   regions,
@@ -26,12 +40,22 @@ export default function FiltersBar({
   selectedJobType,
   selectedCategory,
 }: FiltersBarProps) {
+  const router = useRouter();
+
+  function handleChange(key: string, value: string) {
+    router.push(buildUrl(key, value), { scroll: false });
+  }
+
+  const selectClass =
+    'px-3.5 py-1.5 rounded text-xs font-medium border bg-arena border-tiza text-piedra focus:outline-none focus:ring-2 focus:ring-dorado/30 focus:border-dorado';
+
   return (
     <div className="flex flex-wrap gap-3">
       <select
         name="source"
-        defaultValue={selectedSource ?? ''}
-        className="px-3.5 py-1.5 rounded text-xs font-medium border bg-arena border-tiza text-piedra focus:outline-none focus:ring-2 focus:ring-dorado/30 focus:border-dorado"
+        value={selectedSource ?? ''}
+        onChange={(e) => handleChange('source', e.target.value)}
+        className={selectClass}
       >
         <option value="">Todas las fuentes</option>
         {sources.map((s) => (
@@ -43,8 +67,9 @@ export default function FiltersBar({
 
       <select
         name="category"
-        defaultValue={selectedCategory ?? ''}
-        className="px-3.5 py-1.5 rounded text-xs font-medium border bg-arena border-tiza text-piedra focus:outline-none focus:ring-2 focus:ring-dorado/30 focus:border-dorado"
+        value={selectedCategory ?? ''}
+        onChange={(e) => handleChange('category', e.target.value)}
+        className={selectClass}
       >
         <option value="">Todos los tipos de institución</option>
         {categories.map((c) => (
@@ -56,8 +81,9 @@ export default function FiltersBar({
 
       <select
         name="region"
-        defaultValue={selectedRegion ?? ''}
-        className="px-3.5 py-1.5 rounded text-xs font-medium border bg-arena border-tiza text-piedra focus:outline-none focus:ring-2 focus:ring-dorado/30 focus:border-dorado"
+        value={selectedRegion ?? ''}
+        onChange={(e) => handleChange('region', e.target.value)}
+        className={selectClass}
       >
         <option value="">Todas las regiones</option>
         {regions.map((r) => (
@@ -69,8 +95,9 @@ export default function FiltersBar({
 
       <select
         name="jobType"
-        defaultValue={selectedJobType ?? ''}
-        className="px-3.5 py-1.5 rounded text-xs font-medium border bg-arena border-tiza text-piedra focus:outline-none focus:ring-2 focus:ring-dorado/30 focus:border-dorado"
+        value={selectedJobType ?? ''}
+        onChange={(e) => handleChange('jobType', e.target.value)}
+        className={selectClass}
       >
         <option value="">Todos los tipos</option>
         {jobTypes.map((j) => (

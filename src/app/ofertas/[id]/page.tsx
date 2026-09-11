@@ -7,6 +7,7 @@ import DOMPurify from 'isomorphic-dompurify';
 
 interface Props {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ from?: string }>;
 }
 
 function formatDate(dateStr: string | null): string | null {
@@ -35,8 +36,9 @@ function sanitize(text: string | null): string | null {
   });
 }
 
-export default async function OfertaDetailPage({ params }: Props) {
+export default async function OfertaDetailPage({ params, searchParams }: Props) {
   const { id } = await params;
+  const { from } = await searchParams;
   const jobId = parseInt(id, 10);
 
   if (isNaN(jobId)) {
@@ -54,11 +56,13 @@ export default async function OfertaDetailPage({ params }: Props) {
     notFound();
   }
 
+  const backUrl = from?.startsWith('/ofertas') ? from : '/ofertas';
+
   return (
     <div className="pt-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <Link
-          href="/ofertas"
+          href={backUrl}
           className="text-sm text-dorado hover:opacity-80 font-semibold mb-6 inline-block"
         >
           ← Volver a ofertas

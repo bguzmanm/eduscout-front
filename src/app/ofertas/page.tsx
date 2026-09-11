@@ -87,6 +87,17 @@ export default async function OfertasPage({ searchParams }: Props) {
     return `/ofertas${sp.toString() ? '?' + sp.toString() : ''}`;
   }
 
+  const currentQuery = new URLSearchParams();
+  if (params.q) currentQuery.set('q', params.q);
+  if (params.source) currentQuery.set('source', params.source);
+  if (params.category) currentQuery.set('category', params.category);
+  if (params.region) currentQuery.set('region', params.region);
+  if (params.jobType) currentQuery.set('jobType', params.jobType);
+  if (params.page) currentQuery.set('page', params.page);
+  const backUrl = currentQuery.toString()
+    ? `/ofertas?${currentQuery.toString()}`
+    : '/ofertas';
+
   return (
     <div className="pt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -135,6 +146,7 @@ export default async function OfertasPage({ searchParams }: Props) {
                   sourceName={job.sourceName}
                   sourceSlug={job.sourceSlug}
                   sourceLogoUrl={job.sourceLogoUrl}
+                  backUrl={backUrl}
                 />
               ))}
             </div>
