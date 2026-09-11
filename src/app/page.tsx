@@ -100,7 +100,7 @@ export default async function HomePage() {
                     {job.location || 'Sin ubicación'}
                   </p>
                   <div className="flex items-center gap-2 mt-2">
-                    <SourceLogo src={job.sourceLogoUrl} name={job.sourceName} size={18} />
+                    <SourceLogo src={job.sourceLogoUrl} name={job.sourceName} size={30} />
                     <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-azul/10 text-azul">
                       {job.sourceName}
                     </span>

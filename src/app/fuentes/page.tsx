@@ -83,7 +83,7 @@ export default async function FuentesPage() {
                           <SourceLogo
                             src={source.logoUrl}
                             name={source.name}
-                            size={40}
+                            size={56}
                             className="mt-0.5"
                           />
                           <div>

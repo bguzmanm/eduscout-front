@@ -66,7 +66,7 @@ export default async function OfertaDetailPage({ params }: Props) {
             <SourceLogo
               src={job.sourceLogoUrl}
               name={job.sourceName}
-              size={56}
+              size={72}
               className="mt-1"
             />
           </div>

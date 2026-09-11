@@ -78,7 +78,7 @@ export default function JobCard({
       </div>
 
       <div className="mt-3 flex items-center gap-2">
-        <SourceLogo src={sourceLogoUrl} name={sourceName} size={20} />
+        <SourceLogo src={sourceLogoUrl} name={sourceName} size={32} />
         <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-azul/10 text-azul">
           {sourceName}
         </span>
