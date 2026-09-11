@@ -52,7 +52,7 @@ export default function Footer() {
             <ul className="space-y-2.5">
               <li>
                 <Link
-                  href="#"
+                  href="/privacidad"
                   className="text-sm text-piedra hover:text-azul transition-colors"
                 >
                   Privacidad
@@ -60,7 +60,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="/terminos"
                   className="text-sm text-piedra hover:text-azul transition-colors"
                 >
                   Términos
