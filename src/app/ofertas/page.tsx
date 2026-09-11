@@ -9,6 +9,7 @@ interface Props {
   searchParams: Promise<{
     q?: string;
     source?: string;
+    category?: string;
     region?: string;
     jobType?: string;
     page?: string;
@@ -35,6 +36,13 @@ const JOB_TYPES = [
   'Teletrabajo',
 ];
 
+const CATEGORIES = [
+  { value: 'universidad_publica', label: 'Universidades Públicas' },
+  { value: 'universidad_privada', label: 'Universidades Privadas' },
+  { value: 'instituto_profesional', label: 'Institutos Profesionales' },
+  { value: 'centro_formacion_tecnica', label: 'Centros de Formación Técnica' },
+];
+
 export default async function OfertasPage({ searchParams }: Props) {
   const params = await searchParams;
   const page = parseInt(params.page ?? '1', 10);
@@ -50,6 +58,7 @@ export default async function OfertasPage({ searchParams }: Props) {
         limit: 20,
         q: params.q,
         source: params.source,
+        category: params.category,
         region: params.region,
         jobType: params.jobType,
       }),
@@ -65,11 +74,13 @@ export default async function OfertasPage({ searchParams }: Props) {
   const sourceOptions = sources.map((s) => ({ value: s.slug, label: s.name }));
   const regionOptions = REGIONS.map((r) => ({ value: r, label: r }));
   const jobTypeOptions = JOB_TYPES.map((j) => ({ value: j, label: j }));
+  const categoryOptions = CATEGORIES;
 
   function buildPageUrl(p: number) {
     const sp = new URLSearchParams();
     if (params.q) sp.set('q', params.q);
     if (params.source) sp.set('source', params.source);
+    if (params.category) sp.set('category', params.category);
     if (params.region) sp.set('region', params.region);
     if (params.jobType) sp.set('jobType', params.jobType);
     if (p > 1) sp.set('page', String(p));
@@ -89,7 +100,9 @@ export default async function OfertasPage({ searchParams }: Props) {
             sources={sourceOptions}
             regions={regionOptions}
             jobTypes={jobTypeOptions}
+            categories={categoryOptions}
             selectedSource={params.source}
+            selectedCategory={params.category}
             selectedRegion={params.region}
             selectedJobType={params.jobType}
           />

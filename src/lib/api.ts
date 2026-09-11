@@ -70,6 +70,7 @@ export async function getJobs(params: {
   source?: string;
   region?: string;
   jobType?: string;
+  category?: string;
 } = {}): Promise<PaginatedResponse<Job>> {
   const searchParams = new URLSearchParams();
   if (params.page) searchParams.set('page', String(params.page));
@@ -78,6 +79,7 @@ export async function getJobs(params: {
   if (params.source) searchParams.set('source', params.source);
   if (params.region) searchParams.set('region', params.region);
   if (params.jobType) searchParams.set('jobType', params.jobType);
+  if (params.category) searchParams.set('category', params.category);
 
   const res = await fetch(`${API_BASE}/api/jobs?${searchParams.toString()}`);
   return unwrap<PaginatedResponse<Job>>(res);

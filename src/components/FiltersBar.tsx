@@ -9,18 +9,22 @@ interface FiltersBarProps {
   sources: FilterOption[];
   regions: FilterOption[];
   jobTypes: FilterOption[];
+  categories: FilterOption[];
   selectedSource?: string;
   selectedRegion?: string;
   selectedJobType?: string;
+  selectedCategory?: string;
 }
 
 export default function FiltersBar({
   sources,
   regions,
   jobTypes,
+  categories,
   selectedSource,
   selectedRegion,
   selectedJobType,
+  selectedCategory,
 }: FiltersBarProps) {
   return (
     <div className="flex flex-wrap gap-3">
@@ -33,6 +37,19 @@ export default function FiltersBar({
         {sources.map((s) => (
           <option key={s.value} value={s.value}>
             {s.label}
+          </option>
+        ))}
+      </select>
+
+      <select
+        name="category"
+        defaultValue={selectedCategory ?? ''}
+        className="px-3.5 py-1.5 rounded text-xs font-medium border bg-arena border-tiza text-piedra focus:outline-none focus:ring-2 focus:ring-dorado/30 focus:border-dorado"
+      >
+        <option value="">Todos los tipos de institución</option>
+        {categories.map((c) => (
+          <option key={c.value} value={c.value}>
+            {c.label}
           </option>
         ))}
       </select>
