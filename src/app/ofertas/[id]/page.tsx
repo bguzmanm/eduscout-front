@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { MapPin, Clock, Calendar, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import SourceLogo from '@/components/SourceLogo';
+import DOMPurify from 'isomorphic-dompurify';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -20,6 +21,18 @@ function formatDate(dateStr: string | null): string | null {
   } catch {
     return null;
   }
+}
+
+function isHtml(text: string): boolean {
+  return /<[a-z][\s\S]*>/i.test(text);
+}
+
+function sanitize(text: string | null): string | null {
+  if (!text) return null;
+  return DOMPurify.sanitize(text, {
+    FORBID_ATTR: ['style', 'class', 'id'],
+    FORBID_TAGS: ['script', 'style', 'iframe', 'img', 'video', 'form', 'input'],
+  });
 }
 
 export default async function OfertaDetailPage({ params }: Props) {
@@ -111,9 +124,16 @@ export default async function OfertaDetailPage({ params }: Props) {
               <h3 className="text-xs font-semibold text-azul uppercase tracking-widest mb-2">
                 Descripción
               </h3>
-              <p className="text-sm text-piedra leading-relaxed whitespace-pre-line">
-                {job.description}
-              </p>
+              {isHtml(job.description) ? (
+                <div
+                  className="rich-text text-sm text-piedra leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: sanitize(job.description) ?? '' }}
+                />
+              ) : (
+                <p className="text-sm text-piedra leading-relaxed whitespace-pre-line">
+                  {job.description}
+                </p>
+              )}
             </div>
           )}
 
@@ -122,9 +142,16 @@ export default async function OfertaDetailPage({ params }: Props) {
               <h3 className="text-xs font-semibold text-azul uppercase tracking-widest mb-2">
                 Requisitos
               </h3>
-              <p className="text-sm text-piedra leading-relaxed whitespace-pre-line">
-                {job.requirements}
-              </p>
+              {isHtml(job.requirements) ? (
+                <div
+                  className="rich-text text-sm text-piedra leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: sanitize(job.requirements) ?? '' }}
+                />
+              ) : (
+                <p className="text-sm text-piedra leading-relaxed whitespace-pre-line">
+                  {job.requirements}
+                </p>
+              )}
             </div>
           )}
 
