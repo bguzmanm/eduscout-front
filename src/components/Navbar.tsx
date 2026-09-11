@@ -8,15 +8,18 @@ export default function Navbar() {
     <nav className="fixed top-0 w-full z-50 bg-arena/80 backdrop-blur-md border-b border-tiza">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <Link href="/" className="flex items-center">
+          <Link href="/" className="flex items-center space-x-2">
             <Image
-              src="/logo.png"
+              src="/logo-icon.png"
               alt="EduScout"
-              width={509}
-              height={470}
-              className="h-9 w-auto"
+              width={335}
+              height={331}
+              className="h-11 w-auto"
               priority
             />
+            <span className="text-xl font-display font-bold text-azul tracking-tight">
+              EduScout
+            </span>
           </Link>
 
           <div className="hidden md:flex items-center space-x-1">
