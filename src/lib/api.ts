@@ -50,6 +50,7 @@ export interface Source {
   isActive: boolean;
   lastScraped: string | null;
   createdAt: string;
+  jobCount: number;
 }
 
 export interface JobStats {

@@ -1,6 +1,9 @@
 import { getSources } from '@/lib/api';
-import { ExternalLink, CheckCircle2, XCircle } from 'lucide-react';
+import { ExternalLink, CheckCircle2, XCircle, ArrowRight } from 'lucide-react';
 import SourceLogo from '@/components/SourceLogo';
+import Link from 'next/link';
+
+export const dynamic = 'force-dynamic';
 
 const CATEGORY_LABELS: Record<string, string> = {
   universidad_publica: 'Universidades Públicas',
@@ -123,17 +126,32 @@ export default async function FuentesPage() {
                             {source.isActive ? 'Activa' : 'Inactiva'}
                           </span>
                         </p>
+                        <p>
+                          Ofertas:{' '}
+                          <span className="font-medium text-azul">
+                            {source.jobCount}
+                          </span>
+                        </p>
                       </div>
 
-                      <a
-                        href={source.baseUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 mt-4 text-xs text-dorado hover:opacity-80 font-semibold"
-                      >
-                        Visitar sitio
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
+                      <div className="flex items-center gap-4 mt-4">
+                        <Link
+                          href={`/ofertas?source=${source.slug}`}
+                          className="inline-flex items-center gap-1 text-xs text-dorado hover:opacity-80 font-semibold"
+                        >
+                          Ver ofertas
+                          <ArrowRight className="w-3 h-3" />
+                        </Link>
+                        <a
+                          href={source.baseUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs text-dorado hover:opacity-80 font-semibold"
+                        >
+                          Visitar sitio
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
                     </div>
                   ))}
                 </div>
