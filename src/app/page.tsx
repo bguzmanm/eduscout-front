@@ -1,6 +1,7 @@
 import { GraduationCap, Search, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import { getJobs, getJobStats } from '@/lib/api';
+import SourceLogo from '@/components/SourceLogo';
 
 export default async function HomePage() {
   let recentJobs: Awaited<ReturnType<typeof getJobs>>['items'] = [];
@@ -98,9 +99,12 @@ export default async function HomePage() {
                   <p className="text-xs text-piedra mt-2">
                     {job.location || 'Sin ubicación'}
                   </p>
-                  <span className="inline-block mt-2 px-2 py-0.5 rounded text-xs font-medium bg-azul/10 text-azul">
-                    {job.sourceName}
-                  </span>
+                  <div className="flex items-center gap-2 mt-2">
+                    <SourceLogo src={job.sourceLogoUrl} name={job.sourceName} size={18} />
+                    <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-azul/10 text-azul">
+                      {job.sourceName}
+                    </span>
+                  </div>
                 </Link>
               ))}
             </div>

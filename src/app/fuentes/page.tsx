@@ -1,5 +1,6 @@
 import { getSources } from '@/lib/api';
 import { ExternalLink, CheckCircle2, XCircle } from 'lucide-react';
+import SourceLogo from '@/components/SourceLogo';
 
 const CATEGORY_LABELS: Record<string, string> = {
   universidad_publica: 'Universidades Públicas',
@@ -78,14 +79,22 @@ export default async function FuentesPage() {
                       className="bg-arena border border-tiza rounded-lg p-5 hover:border-dorado transition-colors"
                     >
                       <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-base font-semibold text-azul font-display">
-                            {source.name}
-                          </h3>
-                          <div className="flex items-center gap-2 mt-1.5">
-                            <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-azul/10 text-azul">
-                              {CATEGORY_LABELS[source.category] ?? source.category}
-                            </span>
+                        <div className="flex-1 min-w-0 flex items-start gap-3">
+                          <SourceLogo
+                            src={source.logoUrl}
+                            name={source.name}
+                            size={40}
+                            className="mt-0.5"
+                          />
+                          <div>
+                            <h3 className="text-base font-semibold text-azul font-display">
+                              {source.name}
+                            </h3>
+                            <div className="flex items-center gap-2 mt-1.5">
+                              <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-azul/10 text-azul">
+                                {CATEGORY_LABELS[source.category] ?? source.category}
+                              </span>
+                            </div>
                           </div>
                         </div>
                         {source.isActive ? (

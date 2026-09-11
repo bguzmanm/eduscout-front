@@ -121,6 +121,7 @@ export default async function OfertasPage({ searchParams }: Props) {
                   deadline={job.deadline}
                   sourceName={job.sourceName}
                   sourceSlug={job.sourceSlug}
+                  sourceLogoUrl={job.sourceLogoUrl}
                 />
               ))}
             </div>

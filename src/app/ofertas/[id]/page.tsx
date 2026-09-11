@@ -1,7 +1,8 @@
 import { getJob } from '@/lib/api';
 import { notFound } from 'next/navigation';
-import { MapPin, Clock, Calendar, ExternalLink, Building2 } from 'lucide-react';
+import { MapPin, Clock, Calendar, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
+import SourceLogo from '@/components/SourceLogo';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -52,17 +53,22 @@ export default async function OfertaDetailPage({ params }: Props) {
 
         <div className="bg-arena border border-tiza rounded-lg p-8">
           <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-display font-bold text-azul">
-                {job.title}
-              </h1>
-              {job.company && (
-                <p className="text-lg text-piedra mt-2 flex items-center gap-2">
-                  <Building2 className="w-4 h-4" />
-                  {job.company}
-                </p>
-              )}
+            <div className="flex items-start gap-4">
+              <div>
+                <h1 className="text-2xl font-display font-bold text-azul">
+                  {job.title}
+                </h1>
+                {job.company && (
+                  <p className="text-lg text-piedra mt-2">{job.company}</p>
+                )}
+              </div>
             </div>
+            <SourceLogo
+              src={job.sourceLogoUrl}
+              name={job.sourceName}
+              size={56}
+              className="mt-1"
+            />
           </div>
 
           <div className="flex flex-wrap items-center gap-4 mt-6 text-sm text-piedra">

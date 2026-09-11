@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { MapPin, Clock, ExternalLink } from 'lucide-react';
+import SourceLogo from './SourceLogo';
 
 interface JobCardProps {
   id: number;
@@ -12,6 +13,7 @@ interface JobCardProps {
   deadline: string | null;
   sourceName: string;
   sourceSlug: string;
+  sourceLogoUrl?: string | null;
 }
 
 function formatDate(dateStr: string | null): string | null {
@@ -36,6 +38,7 @@ export default function JobCard({
   jobType,
   deadline,
   sourceName,
+  sourceLogoUrl,
 }: JobCardProps) {
   return (
     <Link
@@ -74,7 +77,8 @@ export default function JobCard({
         )}
       </div>
 
-      <div className="mt-3">
+      <div className="mt-3 flex items-center gap-2">
+        <SourceLogo src={sourceLogoUrl} name={sourceName} size={20} />
         <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-azul/10 text-azul">
           {sourceName}
         </span>

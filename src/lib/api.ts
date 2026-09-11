@@ -36,6 +36,7 @@ export interface Job {
   createdAt: string;
   sourceName: string;
   sourceSlug: string;
+  sourceLogoUrl: string | null;
 }
 
 export interface Source {
@@ -45,6 +46,7 @@ export interface Source {
   baseUrl: string;
   scraperType: string;
   category: string;
+  logoUrl: string | null;
   isActive: boolean;
   lastScraped: string | null;
   createdAt: string;
