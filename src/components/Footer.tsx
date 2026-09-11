@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { GraduationCap } from 'lucide-react';
+import Image from 'next/image';
 
 export default function Footer() {
   return (
@@ -9,11 +9,14 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center space-x-2">
-              <GraduationCap className="w-5 h-5 text-dorado" />
-              <span className="text-lg font-display font-bold text-azul tracking-tight">
-                EduScout
-              </span>
+            <div className="flex items-center">
+              <Image
+                src="/logo.png"
+                alt="EduScout"
+                width={509}
+                height={470}
+                className="h-12 w-auto"
+              />
             </div>
             <p className="text-sm text-piedra mt-3 max-w-sm leading-relaxed">
               Recopilamos ofertas de trabajo para docentes de educación superior
