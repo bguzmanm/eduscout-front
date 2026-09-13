@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import SourceLogo from '@/components/SourceLogo';
-import { updateSource } from '@/lib/api';
+import { getScrapingReport, updateSource, type ScrapingRun } from '@/lib/api';
 import { RefreshCw, LogOut } from 'lucide-react';
 
 const SESSION_COOKIE = 'eduscout_admin_session';
@@ -39,6 +39,28 @@ function formatDate(dateStr: string | null): string {
   });
 }
 
+function formatDuration(ms: number | null): string {
+  if (ms === null) return '—';
+  const seconds = Math.round(ms / 1000);
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes}m ${seconds % 60}s`;
+}
+
+function reportStatusInfo(run: ScrapingRun): {
+  label: string;
+  className: string;
+} {
+  switch (run.status) {
+    case 'failed':
+      return { label: 'Fallido', className: 'text-red-600 bg-red-50 border-red-200' };
+    case 'running':
+      return { label: 'En ejecución', className: 'text-dorado bg-yellow-50 border-yellow-200' };
+    default:
+      return { label: 'Completado', className: 'text-green-700 bg-green-50 border-green-200' };
+  }
+}
+
 export default function AdminPage() {
   const router = useRouter();
   const [sources, setSources] = useState<Source[]>([]);
@@ -46,14 +68,28 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<number | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [report, setReport] = useState<ScrapingRun | null>(null);
+  const [reportError, setReportError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
+    const token = getToken();
     (async () => {
       try {
         const res = await fetch('/api/sources');
         const json = await res.json();
         if (!cancelled) setSources(json.data);
+
+        if (token) {
+          try {
+            const latest = await getScrapingReport(token);
+            if (!cancelled) setReport(latest);
+          } catch {
+            if (!cancelled) {
+              setReportError('No se pudo cargar el informe de scraping.');
+            }
+          }
+        }
       } catch {
         if (!cancelled) setError('No se pudieron cargar las fuentes.');
       } finally {
@@ -68,6 +104,7 @@ export default function AdminPage() {
   function refresh() {
     setLoading(true);
     setError(null);
+    setReportError(null);
     setRefreshKey((k) => k + 1);
   }
 
@@ -237,6 +274,102 @@ export default function AdminPage() {
             </table>
           </div>
         )}
+
+        <section className="mt-10">
+          <h2 className="text-xl font-display font-bold text-azul mb-4">
+            Último scraping
+          </h2>
+
+          {reportError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-4">
+              {reportError}
+            </div>
+          )}
+
+          {!report && !reportError ? (
+            <div className="bg-white border border-tiza rounded-xl p-8 text-center text-piedra text-sm">
+              Sin informes todavía. El informe aparece tras la primera ejecución
+              del scraping (cron de las 06:00 o ejecución manual).
+            </div>
+          ) : report ? (
+            <div className="bg-white border border-tiza rounded-xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-tiza flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${reportStatusInfo(report).className}`}
+                  >
+                    {reportStatusInfo(report).label}
+                  </span>
+                  <span className="text-xs text-piedra">
+                    {formatDate(report.finishedAt ?? report.startedAt)} ·{' '}
+                    {formatDuration(report.durationMs)} · run #{report.id}
+                  </span>
+                </div>
+                <div className="flex items-center gap-4 text-xs font-medium">
+                  <span className="text-green-700">
+                    {report.totalNew} nuevas
+                  </span>
+                  <span className="text-azul">
+                    {report.totalUpdated} actualizadas
+                  </span>
+                  <span
+                    className={
+                      report.totalErrors > 0
+                        ? 'text-red-600'
+                        : 'text-piedra'
+                    }
+                  >
+                    {report.totalErrors} errores
+                  </span>
+                </div>
+              </div>
+
+              <div className="divide-y divide-tiza/60">
+                {(report.perSource ?? []).map((source) => (
+                  <div key={source.slug} className="px-5 py-3.5">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-base leading-none shrink-0">
+                          {source.status === 'error' ? '🔴' : '🟢'}
+                        </span>
+                        <p className="font-medium text-azul truncate">
+                          {source.name}
+                        </p>
+                        <span className="text-xs text-piedra font-mono shrink-0">
+                          ({source.slug})
+                        </span>
+                      </div>
+                      <div className="text-xs text-piedra whitespace-nowrap">
+                        {source.newCount} nueva
+                        {source.newCount === 1 ? '' : 's'} ·{' '}
+                        {source.updatedCount} actualizada
+                        {source.updatedCount === 1 ? '' : 's'} ·{' '}
+                        {formatDuration(source.durationMs)}
+                      </div>
+                    </div>
+                    {source.status === 'error' && (
+                      <ul className="mt-1.5 space-y-0.5">
+                        {source.errors.slice(0, 3).map((error, i) => (
+                          <li
+                            key={i}
+                            className="text-xs text-red-600 pl-5 truncate"
+                          >
+                            {error}
+                          </li>
+                        ))}
+                        {source.errors.length > 3 && (
+                          <li className="text-xs text-red-500 pl-5">
+                            y {source.errors.length - 3} errores más…
+                          </li>
+                        )}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </section>
       </div>
     </div>
   );

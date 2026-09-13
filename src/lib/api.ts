@@ -117,3 +117,51 @@ export async function updateSource(
   if (!res.ok) throw new Error(`Error ${res.status} al actualizar la fuente`);
   return unwrap<Source>(res);
 }
+
+export interface ScrapingRunSource {
+  slug: string;
+  name: string;
+  status: "ok" | "error";
+  newCount: number;
+  updatedCount: number;
+  errorCount: number;
+  errors: string[];
+  durationMs: number;
+}
+
+export interface ScrapingRun {
+  id: number;
+  startedAt: string;
+  finishedAt: string | null;
+  status: "running" | "completed" | "failed";
+  totalNew: number;
+  totalUpdated: number;
+  totalErrors: number;
+  durationMs: number | null;
+  perSource: ScrapingRunSource[] | null;
+  createdAt: string;
+}
+
+async function authedFetch<T>(url: string, token: string): Promise<T> {
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`Error ${res.status}`);
+  return unwrap<T>(res);
+}
+
+export async function getScrapingReport(
+  token: string,
+): Promise<ScrapingRun | null> {
+  return authedFetch<ScrapingRun | null>("/api/scraping/report", token);
+}
+
+export async function getScrapingReports(
+  token: string,
+  limit = 10,
+): Promise<ScrapingRun[]> {
+  return authedFetch<ScrapingRun[]>(
+    `/api/scraping/reports?limit=${limit}`,
+    token,
+  );
+}
