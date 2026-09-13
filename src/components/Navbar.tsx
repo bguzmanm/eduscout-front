@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Settings } from 'lucide-react';
+import { Settings, Bell, User } from 'lucide-react';
 
 export default function Navbar() {
   return (
@@ -37,6 +37,21 @@ export default function Navbar() {
               Fuentes
             </Link>
             <Link
+              href="/alertas"
+              className="text-sm text-piedra hover:text-azul transition-colors font-medium px-3 py-1.5 rounded-md hover:bg-tiza/30 inline-flex items-center gap-1.5"
+            >
+              <Bell className="w-4 h-4" />
+              Mis alertas
+            </Link>
+            <Link
+              href="/perfil"
+              className="text-sm text-piedra hover:text-azul transition-colors font-medium px-3 py-1.5 rounded-md hover:bg-tiza/30 inline-flex items-center gap-1.5"
+              aria-label="Mi perfil"
+            >
+              <User className="w-4 h-4" />
+              Mi perfil
+            </Link>
+            <Link
               href="/admin"
               className="text-sm text-piedra hover:text-azul transition-colors font-medium px-3 py-1.5 rounded-md hover:bg-tiza/30 inline-flex items-center gap-1.5"
             >
@@ -53,11 +68,25 @@ export default function Navbar() {
               Ofertas
             </Link>
             <Link
+              href="/alertas"
+              className="text-sm text-piedra hover:text-azul transition-colors font-medium px-3 py-1.5"
+              aria-label="Mis alertas"
+            >
+              <Bell className="w-5 h-5" />
+            </Link>
+            <Link
+              href="/perfil"
+              className="text-sm text-piedra hover:text-azul transition-colors font-medium px-3 py-1.5"
+              aria-label="Mi perfil"
+            >
+              <User className="w-5 h-5" />
+            </Link>
+            <Link
               href="/admin"
               className="text-sm text-piedra hover:text-azul transition-colors font-medium px-3 py-1.5"
               aria-label="Administración"
             >
-              <Settings className="w-4 h-4" />
+              <Settings className="w-5 h-5" />
             </Link>
           </div>
         </div>

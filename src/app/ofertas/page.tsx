@@ -1,4 +1,5 @@
 import { getJobs, getSources } from '@/lib/api';
+import { REGIONS, JOB_TYPES, CATEGORIES } from '@/lib/filters';
 import JobCard from '@/components/JobCard';
 import SearchBar from '@/components/SearchBar';
 import FiltersBar from '@/components/FiltersBar';
@@ -15,33 +16,6 @@ interface Props {
     page?: string;
   }>;
 }
-
-const REGIONS = [
-  'Metropolitana',
-  'Valparaíso',
-  'Biobío',
-  'Araucanía',
-  'Ñuble',
-  'O\'Higgins',
-  'Maule',
-  'Los Lagos',
-  'Antofagasta',
-  'Coquimbo',
-];
-
-const JOB_TYPES = [
-  'Jornada Completa',
-  'Part Time',
-  'Mixta',
-  'Teletrabajo',
-];
-
-const CATEGORIES = [
-  { value: 'universidad_publica', label: 'Universidades Públicas' },
-  { value: 'universidad_privada', label: 'Universidades Privadas' },
-  { value: 'instituto_profesional', label: 'Institutos Profesionales' },
-  { value: 'centro_formacion_tecnica', label: 'Centros de Formación Técnica' },
-];
 
 export default async function OfertasPage({ searchParams }: Props) {
   const params = await searchParams;
