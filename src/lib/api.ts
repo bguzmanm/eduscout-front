@@ -100,3 +100,20 @@ export async function getJobStats(): Promise<JobStats> {
   const res = await fetch(`${API_BASE}/api/jobs/stats`);
   return unwrap<JobStats>(res);
 }
+
+export async function updateSource(
+  id: number,
+  data: { isActive: boolean },
+  token: string,
+): Promise<Source> {
+  const res = await fetch(`/api/sources/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`Error ${res.status} al actualizar la fuente`);
+  return unwrap<Source>(res);
+}

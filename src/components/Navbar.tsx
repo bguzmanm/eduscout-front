@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { Settings } from 'lucide-react';
 
 export default function Navbar() {
   return (
@@ -35,14 +36,28 @@ export default function Navbar() {
             >
               Fuentes
             </Link>
+            <Link
+              href="/admin"
+              className="text-sm text-piedra hover:text-azul transition-colors font-medium px-3 py-1.5 rounded-md hover:bg-tiza/30 inline-flex items-center gap-1.5"
+            >
+              <Settings className="w-4 h-4" />
+              Admin
+            </Link>
           </div>
 
-          <div className="flex items-center md:hidden">
+          <div className="flex items-center md:hidden space-x-1">
             <Link
               href="/ofertas"
               className="text-sm text-piedra hover:text-azul transition-colors font-medium px-3 py-1.5"
             >
               Ofertas
+            </Link>
+            <Link
+              href="/admin"
+              className="text-sm text-piedra hover:text-azul transition-colors font-medium px-3 py-1.5"
+              aria-label="Administración"
+            >
+              <Settings className="w-4 h-4" />
             </Link>
           </div>
         </div>

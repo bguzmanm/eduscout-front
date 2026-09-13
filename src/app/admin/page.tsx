@@ -1,0 +1,243 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import SourceLogo from '@/components/SourceLogo';
+import { updateSource } from '@/lib/api';
+import { RefreshCw, LogOut } from 'lucide-react';
+
+const SESSION_COOKIE = 'eduscout_admin_session';
+
+function getToken(): string | null {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${SESSION_COOKIE}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+function clearSession() {
+  document.cookie = `${SESSION_COOKIE}=; path=/admin; max-age=0; samesite=strict`;
+}
+
+interface Source {
+  id: number;
+  name: string;
+  slug: string;
+  scraperType: string;
+  logoUrl: string | null;
+  isActive: boolean;
+  lastScraped: string | null;
+  jobCount: number;
+}
+
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return 'Nunca';
+  return new Date(dateStr).toLocaleDateString('es-CL', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+export default function AdminPage() {
+  const router = useRouter();
+  const [sources, setSources] = useState<Source[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [togglingId, setTogglingId] = useState<number | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/sources');
+        const json = await res.json();
+        if (!cancelled) setSources(json.data);
+      } catch {
+        if (!cancelled) setError('No se pudieron cargar las fuentes.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshKey]);
+
+  function refresh() {
+    setLoading(true);
+    setError(null);
+    setRefreshKey((k) => k + 1);
+  }
+
+  function logout() {
+    clearSession();
+    router.push('/admin/login');
+  }
+
+  async function toggleSource(source: Source) {
+    const token = getToken();
+    if (!token) {
+      clearSession();
+      router.push('/admin/login');
+      return;
+    }
+
+    setTogglingId(source.id);
+
+    // Optimistic update
+    setSources((prev) =>
+      prev.map((s) =>
+        s.id === source.id ? { ...s, isActive: !s.isActive } : s,
+      ),
+    );
+
+    try {
+      const updated = await updateSource(source.id, {
+        isActive: !source.isActive,
+      }, token);
+
+      setSources((prev) =>
+        prev.map((s) => (s.id === source.id ? updated : s)),
+      );
+    } catch {
+      setSources((prev) =>
+        prev.map((s) =>
+          s.id === source.id ? { ...s, isActive: source.isActive } : s,
+        ),
+      );
+    } finally {
+      setTogglingId(null);
+    }
+  }
+
+  return (
+    <div className="pt-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-display font-bold text-azul">
+              Administración
+            </h1>
+            <p className="text-sm text-piedra mt-1">
+              Activa o desactiva fuentes de datos individualmente.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={refresh}
+              disabled={loading}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-azul border border-tiza rounded-lg hover:bg-tiza/40 transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              Actualizar
+            </button>
+            <button
+              onClick={logout}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              Cerrar sesión
+            </button>
+          </div>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-6">
+            {error}
+          </div>
+        )}
+
+        {loading && sources.length === 0 ? (
+          <div className="text-center py-16 text-piedra">Cargando fuentes…</div>
+        ) : sources.length === 0 ? (
+          <div className="text-center py-16 text-piedra">
+            No hay fuentes registradas.
+          </div>
+        ) : (
+          <div className="bg-white border border-tiza rounded-xl overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-tiza bg-arena/60">
+                  <th className="text-left font-semibold text-azul px-5 py-3 font-display">
+                    Fuente
+                  </th>
+                  <th className="text-left font-semibold text-azul px-5 py-3 font-display hidden sm:table-cell">
+                    Scraper
+                  </th>
+                  <th className="text-right font-semibold text-azul px-5 py-3 font-display">
+                    Ofertas
+                  </th>
+                  <th className="text-left font-semibold text-azul px-5 py-3 font-display hidden md:table-cell">
+                    Último scraping
+                  </th>
+                  <th className="text-center font-semibold text-azul px-5 py-3 font-display">
+                    Activa
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {sources.map((source) => (
+                  <tr
+                    key={source.id}
+                    className="border-b border-tiza/60 last:border-0 hover:bg-arena/40 transition-colors"
+                  >
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <SourceLogo
+                          src={source.logoUrl}
+                          name={source.name}
+                          size={36}
+                        />
+                        <div>
+                          <p className="font-medium text-azul">{source.name}</p>
+                          <p className="text-xs text-piedra font-mono">
+                            {source.slug}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4 hidden sm:table-cell">
+                      <span className="text-xs font-mono text-piedra bg-arena border border-tiza rounded px-2 py-0.5">
+                        {source.scraperType}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-right font-medium text-azul">
+                      {source.jobCount}
+                    </td>
+                    <td className="px-5 py-4 text-xs text-piedra hidden md:table-cell">
+                      {formatDate(source.lastScraped)}
+                    </td>
+                    <td className="px-5 py-4 text-center">
+                      <button
+                        onClick={() => toggleSource(source)}
+                        disabled={togglingId === source.id}
+                        aria-label={
+                          source.isActive
+                            ? `Desactivar ${source.name}`
+                            : `Activar ${source.name}`
+                        }
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 ${
+                          source.isActive
+                            ? 'bg-green-600'
+                            : 'bg-piedra/40'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            source.isActive ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
