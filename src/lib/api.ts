@@ -294,7 +294,7 @@ export function updateCandidateMe(
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
-  });
+  }, token);
 }
 
 export async function uploadCandidateCv(
@@ -339,7 +339,7 @@ export function createAlert(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
-  });
+  }, token);
 }
 
 export function getAlerts(token: string): Promise<AlertItem[]> {
@@ -355,7 +355,7 @@ export function updateAlert(
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
-  });
+  }, token);
 }
 
 export function deleteAlert(token: string, id: number): Promise<{ message: string }> {

@@ -129,7 +129,6 @@ export default function PerfilPage() {
   function handleLogout() {
     clearCandidateToken();
     setProfile(null);
-    setCandidateToken('');
     setAuthEmail('');
     setAuthPassword('');
     setAuthName('');
