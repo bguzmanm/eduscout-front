@@ -57,6 +57,7 @@ export interface JobStats {
   bySource: { source: string; count: number }[];
   byRegion: { region: string; count: number }[];
   totalActive: number;
+  activeSources: number;
 }
 
 async function unwrap<T>(res: Response): Promise<T> {

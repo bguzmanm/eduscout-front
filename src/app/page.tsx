@@ -3,9 +3,11 @@ import Link from 'next/link';
 import { getJobs, getJobStats } from '@/lib/api';
 import SourceLogo from '@/components/SourceLogo';
 
+export const dynamic = 'force-dynamic';
+
 export default async function HomePage() {
   let recentJobs: Awaited<ReturnType<typeof getJobs>>['items'] = [];
-  let stats: { totalActive: number; bySource: { source: string; count: number }[]; byRegion: { region: string; count: number }[] } | null = null;
+  let stats: { totalActive: number; activeSources: number; bySource: { source: string; count: number }[]; byRegion: { region: string; count: number }[] } | null = null;
 
   try {
     const [jobsRes, statsRes] = await Promise.all([
@@ -62,7 +64,7 @@ export default async function HomePage() {
               </div>
               <div className="bg-arena border border-tiza rounded-lg p-6 text-center">
                 <p className="text-3xl font-display font-bold text-dorado">
-                  {stats.bySource.length}
+                  {stats.activeSources}
                 </p>
                 <p className="text-sm text-piedra mt-1">Fuentes activas</p>
               </div>
