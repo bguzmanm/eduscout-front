@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import SourceLogo from '@/components/SourceLogo';
-import { getScrapingReport, updateSource, type ScrapingRun } from '@/lib/api';
-import { RefreshCw, LogOut } from 'lucide-react';
+import { getScrapingReport, runScraping, updateSource, type ScrapingRun } from '@/lib/api';
+import { RefreshCw, LogOut, Play } from 'lucide-react';
 
 const SESSION_COOKIE = 'eduscout_admin_session';
 
@@ -70,6 +70,8 @@ export default function AdminPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [report, setReport] = useState<ScrapingRun | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
+  const [running, setRunning] = useState(false);
+  const [runError, setRunError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -106,6 +108,29 @@ export default function AdminPage() {
     setError(null);
     setReportError(null);
     setRefreshKey((k) => k + 1);
+  }
+
+  async function runNow() {
+    const token = getToken();
+    if (!token) {
+      clearSession();
+      router.push('/admin/login');
+      return;
+    }
+
+    setRunning(true);
+    setRunError(null);
+    setReportError(null);
+    try {
+      await runScraping(token);
+      refresh();
+    } catch (err) {
+      setRunError(
+        err instanceof Error ? err.message : 'No se pudo ejecutar el scraping.',
+      );
+    } finally {
+      setRunning(false);
+    }
   }
 
   function logout() {
@@ -163,6 +188,18 @@ export default function AdminPage() {
           </div>
           <div className="flex items-center gap-3">
             <button
+              onClick={runNow}
+              disabled={running}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-dorado rounded-lg hover:bg-dorado/90 transition-colors disabled:opacity-60"
+            >
+              {running ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <Play className="w-4 h-4" />
+              )}
+              {running ? 'Ejecutando…' : 'Ejecutar scraping'}
+            </button>
+            <button
               onClick={refresh}
               disabled={loading}
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-azul border border-tiza rounded-lg hover:bg-tiza/40 transition-colors disabled:opacity-50"
@@ -183,6 +220,12 @@ export default function AdminPage() {
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-6">
             {error}
+          </div>
+        )}
+
+        {runError && (
+          <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-6">
+            {runError}
           </div>
         )}
 

@@ -68,7 +68,7 @@ export default async function OfertaDetailPage({ params, searchParams }: Props) 
           ← Volver a ofertas
         </Link>
 
-        <div className="bg-arena border border-tiza rounded-lg p-8">
+        <div className="bg-arena border border-tiza rounded-2xl p-8">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-4">
               <div>
@@ -116,7 +116,7 @@ export default async function OfertaDetailPage({ params, searchParams }: Props) 
 
           {job.department && (
             <div className="mt-6">
-              <h3 className="text-xs font-semibold text-azul uppercase tracking-widest mb-2">
+              <h3 className="text-sm font-semibold text-azul mb-2">
                 Departamento / Facultad
               </h3>
               <p className="text-sm text-piedra">{job.department}</p>
@@ -125,7 +125,7 @@ export default async function OfertaDetailPage({ params, searchParams }: Props) 
 
           {job.description && (
             <div className="mt-6">
-              <h3 className="text-xs font-semibold text-azul uppercase tracking-widest mb-2">
+              <h3 className="text-sm font-semibold text-azul mb-2">
                 Descripción
               </h3>
               {isHtml(job.description) ? (
@@ -143,7 +143,7 @@ export default async function OfertaDetailPage({ params, searchParams }: Props) 
 
           {job.requirements && (
             <div className="mt-6">
-              <h3 className="text-xs font-semibold text-azul uppercase tracking-widest mb-2">
+              <h3 className="text-sm font-semibold text-azul mb-2">
                 Requisitos
               </h3>
               {isHtml(job.requirements) ? (

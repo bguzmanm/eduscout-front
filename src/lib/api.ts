@@ -167,6 +167,29 @@ export async function getScrapingReports(
   );
 }
 
+export async function runScraping(
+  token: string,
+  source?: string,
+): Promise<void> {
+  const url = source
+    ? `/api/scraping/run?source=${encodeURIComponent(source)}`
+    : '/api/scraping/run';
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    let message = `Error ${res.status}`;
+    try {
+      const json = (await res.json()) as { message?: string };
+      if (json.message) message = json.message;
+    } catch {
+      // sin cuerpo JSON
+    }
+    throw new Error(message);
+  }
+}
+
 export interface CandidateCv {
   fileName: string | null;
   mimeType: string | null;

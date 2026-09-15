@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 
 interface SourceLogoProps {
   src?: string | null;
@@ -31,15 +32,17 @@ export default function SourceLogo({
 
   return (
     <div
-      className={`rounded-full bg-azul/10 text-azul font-display font-bold flex items-center justify-center overflow-hidden shrink-0 ${className}`}
+      className={`relative rounded-full bg-azul/10 text-azul font-display font-bold flex items-center justify-center overflow-hidden shrink-0 ${className}`}
       style={{ width: size, height: size, fontSize: size * 0.35 }}
       title={name}
     >
       {showImg ? (
-        <img
+        <Image
+          fill
+          unoptimized
           src={src}
           alt={name}
-          className="w-full h-full object-cover"
+          className="object-cover"
           onError={() => setImgError(true)}
         />
       ) : (
