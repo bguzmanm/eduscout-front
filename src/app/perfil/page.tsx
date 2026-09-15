@@ -37,8 +37,8 @@ function formatSize(bytes: number | null): string {
 }
 
 function isPdfFile(file: File): boolean {
-  if (file.type && file.type !== 'application/pdf') return false;
-  return true;
+  return !(file.type && file.type !== 'application/pdf');
+
 }
 
 function isPdfMagic(buffer: ArrayBuffer): boolean {
@@ -218,7 +218,7 @@ export default function PerfilPage() {
               <h2 className="text-xl font-display font-bold text-azul">
                 {mode === 'login'
                   ? 'Inicia sesión en tu cuenta'
-                  : 'Crea tu perfil de postulante'}
+                  : 'Crea tu perfil'}
               </h2>
               <p className="text-sm text-piedra mt-1">
                 Crea tu perfil para encontrar ofertas que calcen contigo.

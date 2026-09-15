@@ -1,4 +1,4 @@
-import { GraduationCap, Search, Building2 } from 'lucide-react';
+import { Search, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import { getJobs, getJobStats } from '@/lib/api';
 import SourceLogo from '@/components/SourceLogo';
@@ -25,13 +25,12 @@ export default async function HomePage() {
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-display font-bold text-azul tracking-tight">
-            Ofertas académicas,
+            El portal laboral
             <br />
-            <span className="text-dorado">sin búsqueda agotadora</span>
+            <span className="text-dorado">para la educación superior</span>
           </h1>
           <p className="mt-4 text-lg text-piedra max-w-2xl mx-auto leading-relaxed">
-            Recopilamos ofertas de trabajo para docentes de educación superior
-            desde múltiples universidades chilenas. Todo en un solo lugar.
+            Recopilamos y clasificamos cientos de ofertas laborales para docentes de educación superior, y te las dejamos a un solo click de distancia.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
             <Link
@@ -74,49 +73,6 @@ export default async function HomePage() {
                 </p>
                 <p className="text-sm text-piedra mt-1">Regiones</p>
               </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {recentJobs.length > 0 && (
-        <section className="py-12 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-2xl font-display font-bold text-azul mb-6">
-              Últimas ofertas
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {recentJobs.map((job) => (
-                <Link
-                  key={job.id}
-                  href={`/ofertas/${job.id}`}
-                  className="block bg-arena border border-tiza rounded-lg p-5 hover:border-dorado transition-colors"
-                >
-                  <h3 className="text-sm font-semibold text-azul font-display truncate">
-                    {job.title}
-                  </h3>
-                  {job.company && (
-                    <p className="text-xs text-piedra mt-1">{job.company}</p>
-                  )}
-                  <p className="text-xs text-piedra mt-2">
-                    {job.location || 'Sin ubicación'}
-                  </p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <SourceLogo src={job.sourceLogoUrl} name={job.sourceName} size={30} />
-                    <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-azul/10 text-azul">
-                      {job.sourceName}
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-            <div className="mt-6 text-center">
-              <Link
-                href="/ofertas"
-                className="text-sm text-dorado hover:opacity-80 font-semibold"
-              >
-                Ver todas las ofertas →
-              </Link>
             </div>
           </div>
         </section>
@@ -167,6 +123,49 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {recentJobs.length > 0 && (
+        <section className="py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <h2 className="text-2xl font-display font-bold text-azul mb-6">
+              Últimas ofertas
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {recentJobs.map((job) => (
+                <Link
+                  key={job.id}
+                  href={`/ofertas/${job.id}`}
+                  className="block bg-arena border border-tiza rounded-lg p-5 hover:border-dorado transition-colors"
+                >
+                  <h3 className="text-sm font-semibold text-azul font-display truncate">
+                    {job.title}
+                  </h3>
+                  {job.company && (
+                    <p className="text-xs text-piedra mt-1">{job.company}</p>
+                  )}
+                  <p className="text-xs text-piedra mt-2">
+                    {job.location || 'Sin ubicación'}
+                  </p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <SourceLogo src={job.sourceLogoUrl} name={job.sourceName} size={30} />
+                    <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-azul/10 text-azul">
+                      {job.sourceName}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            <div className="mt-6 text-center">
+              <Link
+                href="/ofertas"
+                className="text-sm text-dorado hover:opacity-80 font-semibold"
+              >
+                Ver todas las ofertas →
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

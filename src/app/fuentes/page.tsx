@@ -109,7 +109,7 @@ export default async function FuentesPage() {
 
                       <div className="mt-4 text-xs text-piedra space-y-1">
                         <p>
-                          Último scraping:{' '}
+                          Última sincronización:{' '}
                           <span className="font-medium text-azul">
                             {formatDate(source.lastScraped)}
                           </span>
