@@ -1,5 +1,9 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
+// Política de caché ISR para datos públicos: se revalidan cada hora y los
+// resultados del scraping diario (06:00 America/Santiago) se propagan en ≤1h.
+const PUBLIC_REVALIDATE = 3600;
+
 interface ApiResponse<T> {
   data: T;
   timestamp: string;
@@ -83,22 +87,30 @@ export async function getJobs(params: {
   if (params.jobType) searchParams.set('jobType', params.jobType);
   if (params.category) searchParams.set('category', params.category);
 
-  const res = await fetch(`${API_BASE}/api/jobs?${searchParams.toString()}`);
+  const res = await fetch(`${API_BASE}/api/jobs?${searchParams.toString()}`, {
+    next: { revalidate: PUBLIC_REVALIDATE },
+  });
   return unwrap<PaginatedResponse<Job>>(res);
 }
 
 export async function getJob(id: number): Promise<Job> {
-  const res = await fetch(`${API_BASE}/api/jobs/${id}`);
+  const res = await fetch(`${API_BASE}/api/jobs/${id}`, {
+    next: { revalidate: PUBLIC_REVALIDATE },
+  });
   return unwrap<Job>(res);
 }
 
 export async function getSources(): Promise<Source[]> {
-  const res = await fetch(`${API_BASE}/api/sources`);
+  const res = await fetch(`${API_BASE}/api/sources`, {
+    next: { revalidate: PUBLIC_REVALIDATE },
+  });
   return unwrap<Source[]>(res);
 }
 
 export async function getJobStats(): Promise<JobStats> {
-  const res = await fetch(`${API_BASE}/api/jobs/stats`);
+  const res = await fetch(`${API_BASE}/api/jobs/stats`, {
+    next: { revalidate: PUBLIC_REVALIDATE },
+  });
   return unwrap<JobStats>(res);
 }
 
