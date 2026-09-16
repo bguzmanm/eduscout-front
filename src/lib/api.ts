@@ -190,6 +190,34 @@ export async function runScraping(
   }
 }
 
+export interface AlertsDistribution {
+  noAlerts: number;
+  fewAlerts: number;
+  manyAlerts: number;
+}
+
+export interface AdminCandidateStats {
+  totalCandidates: number;
+  candidatesWithCv: number;
+  candidatesWithPhone: number;
+  candidatesWithCvAndPhone: number;
+  candidatesWithAlerts: number;
+  totalAlerts: number;
+  activeAlerts: number;
+  inactiveAlerts: number;
+  totalAlertMatches: number;
+  avgAlertsPerCandidate: number;
+  registeredLast7d: number;
+  registeredLast30d: number;
+  alertsDistribution: AlertsDistribution;
+}
+
+export async function getAdminCandidateStats(
+  token: string,
+): Promise<AdminCandidateStats> {
+  return authedFetch<AdminCandidateStats>('/api/admin/stats/candidates', token);
+}
+
 export interface CandidateCv {
   fileName: string | null;
   mimeType: string | null;
