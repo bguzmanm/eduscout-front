@@ -23,9 +23,9 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EduScout — Ofertas académicas, sin búsqueda agotadora",
+  title: "EduScout — El portal laboral para la educación superior",
   description:
-    "Recopilamos ofertas de trabajo para docentes de educación superior desde múltiples universidades. Todo en un solo lugar.",
+    "Recopilamos y clasificamos cientos de ofertas laborales para docentes de educación superior, y te las dejamos a un solo click de distancia.",
 };
 
 export default function RootLayout({
