@@ -5,6 +5,7 @@ import SearchBar from '@/components/SearchBar';
 import FiltersBar from '@/components/FiltersBar';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 
 interface Props {
   searchParams: Promise<{
@@ -15,6 +16,36 @@ interface Props {
     jobType?: string;
     page?: string;
   }>;
+}
+
+function canonicalOfertas(
+  params: Awaited<Props['searchParams']>,
+  includePage = true,
+): string {
+  const sp = new URLSearchParams();
+  if (params.q) sp.set('q', params.q);
+  if (params.source) sp.set('source', params.source);
+  if (params.category) sp.set('category', params.category);
+  if (params.region) sp.set('region', params.region);
+  if (params.jobType) sp.set('jobType', params.jobType);
+  if (includePage && params.page && Number(params.page) > 1) {
+    sp.set('page', params.page);
+  }
+  return `/ofertas${sp.size > 0 ? `?${sp.toString()}` : ''}`;
+}
+
+export async function generateMetadata({
+  searchParams,
+}: Props): Promise<Metadata> {
+  const params = await searchParams;
+  return {
+    title: 'Ofertas de trabajo',
+    description:
+      'Explora y filtra cientos de ofertas laborales para docentes y académicos de educación superior en Chile.',
+    alternates: {
+      canonical: canonicalOfertas(params),
+    },
+  };
 }
 
 export default async function OfertasPage({ searchParams }: Props) {

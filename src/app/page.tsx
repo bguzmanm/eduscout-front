@@ -1,9 +1,18 @@
 import { Search, Building2 } from 'lucide-react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { getJobs, getJobStats } from '@/lib/api';
 import SourceLogo from '@/components/SourceLogo';
+import JsonLd from '@/components/JsonLd';
+import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: '/',
+  },
+};
 
 export default async function HomePage() {
   let recentJobs: Awaited<ReturnType<typeof getJobs>>['items'] = [];
@@ -22,6 +31,29 @@ export default async function HomePage() {
 
   return (
     <div className="pt-16">
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@graph': [
+            {
+              '@type': 'Organization',
+              '@id': `${SITE_URL}/#organization`,
+              name: SITE_NAME,
+              url: SITE_URL,
+              logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo.png` },
+              description: SITE_DESCRIPTION,
+            },
+            {
+              '@type': 'WebSite',
+              '@id': `${SITE_URL}/#website`,
+              url: SITE_URL,
+              name: SITE_NAME,
+              inLanguage: 'es-CL',
+              publisher: { '@id': `${SITE_URL}/#organization` },
+            },
+          ],
+        }}
+      />
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-display font-bold text-azul tracking-tight">

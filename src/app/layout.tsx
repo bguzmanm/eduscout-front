@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Sen, Work_Sans, JetBrains_Mono } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { SITE_URL, SITE_NAME, SITE_TITLE, SITE_DESCRIPTION } from "@/lib/site";
 import "./globals.css";
 
 const display = Sen({
@@ -23,9 +24,41 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EduScout — El portal laboral para la educación superior",
-  description:
-    "Recopilamos y clasificamos cientos de ofertas laborales para docentes de educación superior, y te las dejamos a un solo click de distancia.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: SITE_TITLE,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  keywords: [
+    "trabajo docentes",
+    "ofertas académicas",
+    "cargos docentes Chile",
+    "empleo educación superior",
+    "concursos académicos",
+    "universidades Chile",
+  ],
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "es_CL",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

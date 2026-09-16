@@ -2,8 +2,18 @@ import { getSources } from '@/lib/api';
 import { ExternalLink, CheckCircle2, XCircle, ArrowRight } from 'lucide-react';
 import SourceLogo from '@/components/SourceLogo';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'Fuentes de datos',
+  description:
+    'Universidades, institutos profesionales y centros de formación técnica de Chile cuyas ofertas académicas y laborales recopila EduScout.',
+  alternates: {
+    canonical: '/fuentes',
+  },
+};
 
 const CATEGORY_LABELS: Record<string, string> = {
   universidad_publica: 'Universidades Públicas',

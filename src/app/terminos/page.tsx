@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Términos y Condiciones — EduScout",
+  title: "Términos y Condiciones",
   description:
     "Términos y condiciones de uso de EduScout, agregador de ofertas académicas de educación superior en Chile.",
+  alternates: {
+    canonical: "/terminos",
+  },
 };
 
 const lastUpdated = "11 de septiembre de 2026";

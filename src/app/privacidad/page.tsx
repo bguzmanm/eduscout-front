@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Privacidad — EduScout",
+  title: "Privacidad",
   description:
     "Política de privacidad de EduScout, agregador de ofertas académicas de educación superior en Chile.",
+  alternates: {
+    canonical: "/privacidad",
+  },
 };
 
 const lastUpdated = "11 de septiembre de 2026";
