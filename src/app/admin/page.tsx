@@ -3,7 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import SourceLogo from '@/components/SourceLogo';
-import { getScrapingReport, runScraping, updateSource, type ScrapingRun } from '@/lib/api';
+import {
+  getAdminCandidateStats,
+  getScrapingReport,
+  runScraping,
+  updateSource,
+  type AdminCandidateStats,
+  type ScrapingRun,
+} from '@/lib/api';
 import { RefreshCw, LogOut, Play } from 'lucide-react';
 
 const SESSION_COOKIE = 'eduscout_admin_session';
@@ -61,6 +68,29 @@ function reportStatusInfo(run: ScrapingRun): {
   }
 }
 
+function percent(part: number, total: number): string {
+  if (total === 0) return '0%';
+  return `${Math.round((part / total) * 100)}%`;
+}
+
+function StatCard({
+  label,
+  value,
+  note,
+}: {
+  label: string;
+  value: string | number;
+  note?: string;
+}) {
+  return (
+    <div className="bg-arena border border-tiza rounded-lg p-5">
+      <p className="text-3xl font-display font-bold text-dorado">{value}</p>
+      <p className="text-sm text-piedra mt-1">{label}</p>
+      {note && <p className="text-xs text-piedra/70 mt-0.5">{note}</p>}
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const router = useRouter();
   const [sources, setSources] = useState<Source[]>([]);
@@ -72,6 +102,11 @@ export default function AdminPage() {
   const [reportError, setReportError] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
   const [runError, setRunError] = useState<string | null>(null);
+  const [candidateStats, setCandidateStats] =
+    useState<AdminCandidateStats | null>(null);
+  const [candidateStatsError, setCandidateStatsError] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -91,6 +126,17 @@ export default function AdminPage() {
               setReportError('No se pudo cargar el informe de scraping.');
             }
           }
+
+          try {
+            const stats = await getAdminCandidateStats(token);
+            if (!cancelled) setCandidateStats(stats);
+          } catch {
+            if (!cancelled) {
+              setCandidateStatsError(
+                'No se pudieron cargar los indicadores de candidatos.',
+              );
+            }
+          }
         }
       } catch {
         if (!cancelled) setError('No se pudieron cargar las fuentes.');
@@ -107,6 +153,7 @@ export default function AdminPage() {
     setLoading(true);
     setError(null);
     setReportError(null);
+    setCandidateStatsError(null);
     setRefreshKey((k) => k + 1);
   }
 
@@ -317,6 +364,98 @@ export default function AdminPage() {
             </table>
           </div>
         )}
+
+        <section className="mt-10">
+          <h2 className="text-xl font-display font-bold text-azul mb-4">
+            Candidatos
+          </h2>
+
+          {candidateStatsError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-4">
+              {candidateStatsError}
+            </div>
+          )}
+
+          {!candidateStats && !candidateStatsError ? (
+            <div className="bg-white border border-tiza rounded-xl p-8 text-center text-piedra text-sm">
+              Cargando indicadores…
+            </div>
+          ) : candidateStats ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <StatCard
+                  label="Perfiles creados"
+                  value={candidateStats.totalCandidates}
+                  note={`${candidateStats.registeredLast7d} en 7 días · ${candidateStats.registeredLast30d} en 30 días`}
+                />
+                <StatCard
+                  label="Con CV"
+                  value={candidateStats.candidatesWithCv}
+                  note={`${percent(candidateStats.candidatesWithCv, candidateStats.totalCandidates)} del total`}
+                />
+                <StatCard
+                  label="Con teléfono"
+                  value={candidateStats.candidatesWithPhone}
+                  note={`${percent(candidateStats.candidatesWithPhone, candidateStats.totalCandidates)} del total`}
+                />
+                <StatCard
+                  label="Con CV y teléfono"
+                  value={candidateStats.candidatesWithCvAndPhone}
+                  note={`${percent(candidateStats.candidatesWithCvAndPhone, candidateStats.totalCandidates)} del total`}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <StatCard
+                  label="Con al menos una alerta"
+                  value={candidateStats.candidatesWithAlerts}
+                  note={`${percent(candidateStats.candidatesWithAlerts, candidateStats.totalCandidates)} del total`}
+                />
+                <StatCard
+                  label="Alertas activas"
+                  value={`${candidateStats.activeAlerts}/${candidateStats.totalAlerts}`}
+                  note={`${percent(candidateStats.activeAlerts, candidateStats.totalAlerts)} de las alertas creadas`}
+                />
+                <StatCard
+                  label="Promedio de alertas"
+                  value={candidateStats.avgAlertsPerCandidate}
+                  note="por candidato con alertas"
+                />
+                <StatCard
+                  label="Coincidencias generadas"
+                  value={candidateStats.totalAlertMatches}
+                  note="ofertas calzadas con alertas"
+                />
+              </div>
+
+              <div className="bg-white border border-tiza rounded-xl p-5">
+                <h3 className="text-sm font-display font-bold text-azul mb-3">
+                  Distribución de alertas por candidato
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                  <div className="flex items-center justify-between border border-tiza rounded-lg px-4 py-3">
+                    <span className="text-piedra">Sin alertas</span>
+                    <span className="font-bold text-azul">
+                      {candidateStats.alertsDistribution.noAlerts}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between border border-tiza rounded-lg px-4 py-3">
+                    <span className="text-piedra">1–2 alertas</span>
+                    <span className="font-bold text-azul">
+                      {candidateStats.alertsDistribution.fewAlerts}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between border border-tiza rounded-lg px-4 py-3">
+                    <span className="text-piedra">3+ alertas</span>
+                    <span className="font-bold text-azul">
+                      {candidateStats.alertsDistribution.manyAlerts}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </section>
 
         <section className="mt-10">
           <h2 className="text-xl font-display font-bold text-azul mb-4">
