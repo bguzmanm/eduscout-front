@@ -313,11 +313,19 @@ async function candidateRequest<T>(
 
   if (!res.ok) {
     let message = `Error ${res.status}`;
-    try {
-      const json = (await res.json()) as { message?: string };
-      if (json.message) message = json.message;
-    } catch {
-      // no JSON body
+    if (res.status === 429) {
+      message =
+        'Demasiados intentos. Espera un minuto e inténtalo nuevamente.';
+    } else if (res.status >= 500) {
+      message =
+        'No se pudo completar la operación. Inténtalo en unos segundos.';
+    } else {
+      try {
+        const json = (await res.json()) as { message?: string };
+        if (json.message) message = json.message;
+      } catch {
+        // no JSON body
+      }
     }
     throw new Error(message);
   }

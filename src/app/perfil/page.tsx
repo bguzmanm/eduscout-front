@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useSyncExternalStore, useState } from 'react';
 import Link from 'next/link';
 import {
   User,
@@ -34,6 +34,14 @@ function formatSize(bytes: number | null): string {
   if (!bytes) return '-';
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function useHydrated(): boolean {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 }
 
 function isPdfFile(file: File): boolean {
@@ -72,6 +80,8 @@ export default function PerfilPage() {
   const [cvError, setCvError] = useState<string | null>(null);
   const [cvLoading, setCvLoading] = useState(false);
   const [cvDownloadName, setCvDownloadName] = useState<string | null>(null);
+
+  const hydrated = useHydrated();
 
   useEffect(() => {
     let cancelled = false;
@@ -309,13 +319,18 @@ export default function PerfilPage() {
 
               <button
                 type="submit"
-                disabled={authLoading}
+                disabled={!hydrated || authLoading}
                 className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-azul rounded-lg hover:bg-azul/90 transition-colors disabled:opacity-60"
               >
                 {authLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
                     Procesando…
+                  </>
+                ) : !hydrated ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Cargando…
                   </>
                 ) : mode === 'login' ? (
                   'Ingresar'

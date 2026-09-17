@@ -1,8 +1,16 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, useSyncExternalStore, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { Lock, Loader2 } from 'lucide-react';
+
+function useHydrated(): boolean {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+}
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -10,6 +18,7 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const hydrated = useHydrated();
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -24,7 +33,17 @@ export default function AdminLoginPage() {
       });
 
       if (!res.ok) {
-        setError('Credenciales inválidas.');
+        let message = 'Credenciales inválidas.';
+        if (res.status === 401) {
+          message = 'Credenciales inválidas.';
+        } else if (res.status === 429) {
+          message =
+            'Demasiados intentos. Espera un minuto e inténtalo nuevamente.';
+        } else {
+          message =
+            'No se pudo iniciar sesión en este momento. Inténtalo en unos segundos.';
+        }
+        setError(message);
         return;
       }
 
@@ -98,13 +117,18 @@ export default function AdminLoginPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={!hydrated || loading}
             className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-azul rounded-lg hover:bg-azul/90 transition-colors disabled:opacity-60"
           >
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
                 Ingresando…
+              </>
+            ) : !hydrated ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Cargando…
               </>
             ) : (
               'Ingresar'
