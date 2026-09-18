@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
-    "start": "next start",
+    "start": "bun run start:prod",
+    "start:prod": "bash scripts/start-prod.sh",
     "lint": "eslint",
     "typecheck": "bunx tsc --noEmit"
   },

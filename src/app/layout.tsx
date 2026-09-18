@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Sen, Work_Sans, JetBrains_Mono } from "next/font/google";
 import Navbar from "@/components/Navbar";
+import RibbonBadge from "@/components/RibbonBadge";
 import Footer from "@/components/Footer";
 import { SITE_URL, SITE_NAME, SITE_TITLE, SITE_DESCRIPTION } from "@/lib/site";
 import "./globals.css";
@@ -72,6 +73,7 @@ export default function RootLayout({
         className={`${display.variable} ${body.variable} ${mono.variable}`}
       >
         <div className="flex flex-col min-h-screen">
+          <RibbonBadge />
           <Navbar />
           <main className="flex-grow">
             {children}

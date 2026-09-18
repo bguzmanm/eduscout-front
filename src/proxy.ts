@@ -8,7 +8,7 @@ export const config = {
   matcher: ['/admin/:path*', '/alertas/:path*'],
 };
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith('/alertas')) {
