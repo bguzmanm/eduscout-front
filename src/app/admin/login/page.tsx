@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useSyncExternalStore, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
 import { Lock, Loader2 } from 'lucide-react';
 
 function useHydrated(): boolean {
@@ -13,7 +12,6 @@ function useHydrated(): boolean {
 }
 
 export default function AdminLoginPage() {
-  const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +51,7 @@ export default function AdminLoginPage() {
       const secure = location.protocol === 'https:' || location.hostname === 'localhost';
       document.cookie = `eduscout_admin_session=${token}; path=/admin; max-age=${maxAge}; samesite=strict${secure ? '; Secure' : ''}`;
 
-      router.push('/admin');
+      window.location.href = '/admin';
     } catch {
       setError('Error de conexión. Verifica que el backend esté corriendo.');
     } finally {

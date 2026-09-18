@@ -38,6 +38,7 @@ export default function Navbar() {
             </Link>
             <Link
               href="/alertas"
+              prefetch={false}
               className="text-sm text-piedra hover:text-azul transition-colors font-medium px-3 py-1.5 rounded-md hover:bg-tiza/30 inline-flex items-center gap-1.5"
             >
               <Bell className="w-4 h-4" />
@@ -53,6 +54,7 @@ export default function Navbar() {
             </Link>
             <Link
               href="/admin"
+              prefetch={false}
               className="text-sm text-piedra hover:text-azul transition-colors font-medium px-3 py-1.5 rounded-md hover:bg-tiza/30 inline-flex items-center gap-1.5"
             >
               <Settings className="w-4 h-4" />
@@ -69,6 +71,7 @@ export default function Navbar() {
             </Link>
             <Link
               href="/alertas"
+              prefetch={false}
               className="text-sm text-piedra hover:text-azul transition-colors font-medium px-3 py-1.5"
               aria-label="Mis alertas"
             >
@@ -83,6 +86,7 @@ export default function Navbar() {
             </Link>
             <Link
               href="/admin"
+              prefetch={false}
               className="text-sm text-piedra hover:text-azul transition-colors font-medium px-3 py-1.5"
               aria-label="Administración"
             >

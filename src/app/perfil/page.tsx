@@ -127,8 +127,7 @@ export default function PerfilPage() {
               password: authPassword,
             });
       setCandidateToken(result.token);
-      setProfile(result.candidate);
-      setPhone(result.candidate.phone ?? '');
+      window.location.reload();
     } catch (err) {
       setAuthError((err as Error).message);
     } finally {
