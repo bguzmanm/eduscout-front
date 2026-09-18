@@ -11,14 +11,16 @@ interface SourceLogoProps {
 }
 
 function initials(name: string): string {
-  const words = name
+  const safe = (name ?? '').trim();
+  const words = safe
     .replace(/^(Universidad|Instituto|IP|Centro|Inacap|Duoc)\s*/i, '')
     .trim()
-    .split(/\s+/);
+    .split(/\s+/)
+    .filter(Boolean);
   if (words.length >= 2) {
     return (words[0][0] + words[1][0]).toUpperCase();
   }
-  return name.slice(0, 2).toUpperCase();
+  return safe.slice(0, 2).toUpperCase() || '??';
 }
 
 export default function SourceLogo({
