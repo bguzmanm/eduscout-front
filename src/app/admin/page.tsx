@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation';
 import SourceLogo from '@/components/SourceLogo';
 import {
   getAdminCandidateStats,
+  getAdminCandidates,
   getScrapingReport,
   getScrapingReports,
   runScraping,
   updateSource,
+  type AdminCandidate,
   type AdminCandidateStats,
   type ScrapingRun,
 } from '@/lib/api';
@@ -106,6 +108,37 @@ function percent(part: number, total: number): string {
   return `${Math.round((part / total) * 100)}%`;
 }
 
+type CvFilter = 'all' | 'with' | 'without';
+
+function cvStatusInfo(candidate: AdminCandidate | undefined): {
+  label: string;
+  className: string;
+} {
+  if (!candidate?.cvFileName) {
+    return {
+      label: 'Sin CV',
+      className: 'text-piedra bg-tiza/60 border-tiza',
+    };
+  }
+  switch (candidate.cvStatus) {
+    case 'approved':
+      return {
+        label: 'CV aprobado',
+        className: 'text-green-700 bg-green-50 border-green-200',
+      };
+    case 'rejected':
+      return {
+        label: 'CV rechazado',
+        className: 'text-red-600 bg-red-50 border-red-200',
+      };
+    default:
+      return {
+        label: 'CV en revisión',
+        className: 'text-dorado bg-yellow-50 border-yellow-200',
+      };
+  }
+}
+
 function StatCard({
   label,
   value,
@@ -139,6 +172,17 @@ export default function AdminPage() {
   const [candidateStatsError, setCandidateStatsError] = useState<
     string | null
   >(null);
+
+  const [candidates, setCandidates] = useState<AdminCandidate[]>([]);
+  const [candidatesMeta, setCandidatesMeta] = useState<
+    { page: number; limit: number; total: number; totalPages: number } | null
+  >(null);
+  const [candidatesPage, setCandidatesPage] = useState(1);
+  const [candidatesQ, setCandidatesQ] = useState('');
+  const [candidatesQInput, setCandidatesQInput] = useState('');
+  const [candidatesCvFilter, setCandidatesCvFilter] = useState<CvFilter>('all');
+  const [candidatesLoading, setCandidatesLoading] = useState(false);
+  const [candidatesError, setCandidatesError] = useState<string | null>(null);
 
   const [report, setReport] = useState<ScrapingRun | null>(null);
   const [runs, setRuns] = useState<ScrapingRun[]>([]);
@@ -244,6 +288,37 @@ export default function AdminPage() {
     };
   }, [tab, dataVersion]);
 
+  useEffect(() => {
+    if (tab !== 'candidatos') return;
+    let cancelled = false;
+    const token = getToken();
+    const hasCv =
+      candidatesCvFilter === 'all' ? undefined : candidatesCvFilter === 'with';
+    getAdminCandidates(token ?? '', {
+      page: candidatesPage,
+      limit: 20,
+      q: candidatesQ || undefined,
+      hasCv,
+    })
+      .then((result) => {
+        if (!cancelled) {
+          setCandidates(result.items);
+          setCandidatesMeta(result.meta);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setCandidatesError('No se pudieron cargar los postulantes.');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setCandidatesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [tab, dataVersion, candidatesPage, candidatesQ, candidatesCvFilter]);
+
   function selectTab(next: TabKey) {
     if (next === 'fuentes' && lastLoaded.current.fuentes !== dataVersion) {
       setSourcesLoading(true);
@@ -260,6 +335,10 @@ export default function AdminPage() {
     ) {
       setScrapingLoading(true);
     }
+    if (next === 'candidatos') {
+      setCandidatesLoading(true);
+      setCandidatesError(null);
+    }
     setTab(next);
     const url = `${window.location.pathname}${window.location.search}#${next}`;
     window.history.pushState(null, '', url);
@@ -270,10 +349,33 @@ export default function AdminPage() {
     setSourcesError(null);
     setCandidateStatsError(null);
     setReportError(null);
+    setCandidatesError(null);
     setSourcesLoading(true);
     setCandidateStatsLoading(true);
     setScrapingLoading(true);
+    setCandidatesLoading(true);
     setDataVersion((v) => v + 1);
+  }
+
+  function submitCandidateSearch(event: React.FormEvent) {
+    event.preventDefault();
+    setCandidatesPage(1);
+    setCandidatesQ(candidatesQInput.trim());
+    setCandidatesLoading(true);
+    setCandidatesError(null);
+  }
+
+  function changeCvFilter(next: CvFilter) {
+    setCandidatesPage(1);
+    setCandidatesCvFilter(next);
+    setCandidatesLoading(true);
+    setCandidatesError(null);
+  }
+
+  function goToCandidatePage(next: number) {
+    setCandidatesPage(next);
+    setCandidatesLoading(true);
+    setCandidatesError(null);
   }
 
   async function runNow() {
@@ -339,7 +441,11 @@ export default function AdminPage() {
     }
   }
 
-  const anyLoading = sourcesLoading || candidateStatsLoading || scrapingLoading;
+  const anyLoading =
+    sourcesLoading ||
+    candidateStatsLoading ||
+    scrapingLoading ||
+    candidatesLoading;
 
   return (
     <div className="pt-16">
@@ -584,6 +690,168 @@ export default function AdminPage() {
                       </span>
                     </div>
                   </div>
+                </div>
+
+                <div className="bg-white border border-tiza rounded-xl overflow-hidden">
+                  <div className="px-5 py-4 border-b border-tiza flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <div>
+                      <h3 className="text-sm font-display font-bold text-azul">
+                        Listado de postulantes
+                      </h3>
+                      <p className="text-xs text-piedra mt-0.5">
+                        {candidatesMeta
+                          ? `${candidatesMeta.total} postulante${candidatesMeta.total === 1 ? '' : 's'}`
+                          : 'Cargando postulantes…'}
+                      </p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <form onSubmit={submitCandidateSearch} className="flex gap-2">
+                        <input
+                          type="search"
+                          value={candidatesQInput}
+                          onChange={(event) => setCandidatesQInput(event.target.value)}
+                          placeholder="Buscar por nombre o correo"
+                          className="px-3 py-2 text-sm border border-tiza rounded-lg focus:outline-none focus:ring-2 focus:ring-dorado/60"
+                        />
+                        <button
+                          type="submit"
+                          className="inline-flex items-center gap-1 px-3 py-2 text-sm font-medium text-azul border border-tiza rounded-lg hover:bg-tiza/40 transition-colors"
+                        >
+                          Buscar
+                        </button>
+                      </form>
+                      <select
+                        value={candidatesCvFilter}
+                        onChange={(event) =>
+                          changeCvFilter(event.target.value as CvFilter)
+                        }
+                        className="px-3 py-2 text-sm border border-tiza rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-dorado/60"
+                      >
+                        <option value="all">Todos los CV</option>
+                        <option value="with">Con CV</option>
+                        <option value="without">Sin CV</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {candidatesError && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 m-5">
+                      {candidatesError}
+                    </div>
+                  )}
+
+                  {candidatesLoading && candidates.length === 0 ? (
+                    <div className="text-center py-12 text-piedra text-sm">
+                      Cargando postulantes…
+                    </div>
+                  ) : candidates.length === 0 ? (
+                    <div className="text-center py-12 text-piedra text-sm">
+                      No hay postulantes que coincidan con los filtros.
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-tiza bg-arena/60">
+                            <th className="text-left font-semibold text-azul px-5 py-3 font-display">
+                              Postulante
+                            </th>
+                            <th className="text-left font-semibold text-azul px-5 py-3 font-display hidden md:table-cell">
+                              Registro
+                            </th>
+                            <th className="text-left font-semibold text-azul px-5 py-3 font-display">
+                              CV
+                            </th>
+                            <th className="text-center font-semibold text-azul px-5 py-3 font-display">
+                              Alertas
+                            </th>
+                            <th className="text-right font-semibold text-azul px-5 py-3 font-display hidden sm:table-cell">
+                              Coincidencias
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {candidates.map((candidate) => {
+                            const cv = cvStatusInfo(candidate);
+                            return (
+                              <tr
+                                key={candidate.id}
+                                className="border-b border-tiza/60 last:border-0 hover:bg-arena/40 transition-colors"
+                              >
+                                <td className="px-5 py-4">
+                                  <p className="font-medium text-azul">
+                                    {candidate.name}
+                                  </p>
+                                  <p className="text-xs text-piedra truncate max-w-[220px]">
+                                    {candidate.email}
+                                    {candidate.phone
+                                      ? ` · ${candidate.phone}`
+                                      : ''}
+                                  </p>
+                                </td>
+                                <td className="px-5 py-4 text-xs text-piedra hidden md:table-cell whitespace-nowrap">
+                                  {formatDate(candidate.createdAt)}
+                                </td>
+                                <td className="px-5 py-4">
+                                  <span
+                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${cv.className}`}
+                                  >
+                                    {cv.label}
+                                  </span>
+                                  {candidate.cvUploadedAt && (
+                                    <p className="text-xs text-piedra mt-1">
+                                      {formatDate(candidate.cvUploadedAt)}
+                                    </p>
+                                  )}
+                                </td>
+                                <td className="px-5 py-4 text-center">
+                                  <span className="font-bold text-azul">
+                                    {candidate.alertCount}
+                                  </span>
+                                  <span className="text-xs text-piedra">
+                                    {' '}
+                                    · {candidate.activeAlertCount} activas
+                                  </span>
+                                </td>
+                                <td className="px-5 py-4 text-right font-medium text-azul hidden sm:table-cell">
+                                  {candidate.matchCount}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {candidatesMeta && candidatesMeta.totalPages > 1 && (
+                    <div className="px-5 py-3 border-t border-tiza flex flex-wrap items-center justify-between gap-3">
+                      <p className="text-xs text-piedra">
+                        Página {candidatesMeta.page} de{' '}
+                        {candidatesMeta.totalPages}
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => goToCandidatePage(Math.max(1, candidatesPage - 1))}
+                          disabled={candidatesPage <= 1}
+                          className="px-3 py-1.5 text-sm font-medium text-azul border border-tiza rounded-lg hover:bg-tiza/40 transition-colors disabled:opacity-50"
+                        >
+                          Anterior
+                        </button>
+                        <button
+                          onClick={() =>
+                            goToCandidatePage(
+                              Math.min(candidatesMeta.totalPages, candidatesPage + 1),
+                            )
+                          }
+                          disabled={candidatesPage >= candidatesMeta.totalPages}
+                          className="px-3 py-1.5 text-sm font-medium text-azul border border-tiza rounded-lg hover:bg-tiza/40 transition-colors disabled:opacity-50"
+                        >
+                          Siguiente
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : null}

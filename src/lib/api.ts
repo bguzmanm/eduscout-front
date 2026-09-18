@@ -230,6 +230,44 @@ export async function getAdminCandidateStats(
   return authedFetch<AdminCandidateStats>('/api/admin/stats/candidates', token);
 }
 
+export interface AdminCandidate {
+  id: number;
+  name: string;
+  email: string;
+  phone: string | null;
+  cvFileName: string | null;
+  cvStatus: string;
+  cvUploadedAt: string | null;
+  alertCount: number;
+  activeAlertCount: number;
+  matchCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function getAdminCandidates(
+  token: string,
+  params: {
+    page?: number;
+    limit?: number;
+    q?: string;
+    hasCv?: boolean;
+  } = {},
+): Promise<PaginatedResponse<AdminCandidate>> {
+  const searchParams = new URLSearchParams();
+  if (params.page) searchParams.set('page', String(params.page));
+  if (params.limit) searchParams.set('limit', String(params.limit));
+  if (params.q) searchParams.set('q', params.q);
+  if (params.hasCv !== undefined) {
+    searchParams.set('hasCv', String(params.hasCv));
+  }
+  const res = await fetch(`/api/admin/candidates?${searchParams.toString()}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`Error ${res.status}`);
+  return unwrap<PaginatedResponse<AdminCandidate>>(res);
+}
+
 export interface CandidateCv {
   fileName: string | null;
   mimeType: string | null;
