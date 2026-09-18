@@ -1,10 +1,21 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Settings, Bell, User } from 'lucide-react';
+import { Settings, Bell, User, Search, Compass, Menu, X } from 'lucide-react';
+
+const NAV_LINKS = [
+  { href: '/ofertas', label: 'Buscar ofertas', icon: Search },
+  { href: '/fuentes', label: 'Fuentes', icon: Compass },
+  { href: '/alertas', label: 'Mis alertas', icon: Bell, noPrefetch: true },
+  { href: '/perfil', label: 'Mi perfil', icon: User },
+  { href: '/admin', label: 'Admin', icon: Settings, noPrefetch: true },
+];
 
 export default function Navbar() {
+  const [open, setOpen] = useState(false);
+
   return (
     <nav className="fixed top-0 w-full z-50 bg-arena/80 backdrop-blur-md border-b border-tiza">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -24,77 +35,52 @@ export default function Navbar() {
           </Link>
 
           <div className="hidden md:flex items-center space-x-1">
-            <Link
-              href="/ofertas"
-              className="text-sm text-piedra hover:text-azul transition-colors font-medium px-3 py-1.5 rounded-md hover:bg-tiza/30"
-            >
-              Buscar ofertas
-            </Link>
-            <Link
-              href="/fuentes"
-              className="text-sm text-piedra hover:text-azul transition-colors font-medium px-3 py-1.5 rounded-md hover:bg-tiza/30"
-            >
-              Fuentes
-            </Link>
-            <Link
-              href="/alertas"
-              prefetch={false}
-              className="text-sm text-piedra hover:text-azul transition-colors font-medium px-3 py-1.5 rounded-md hover:bg-tiza/30 inline-flex items-center gap-1.5"
-            >
-              <Bell className="w-4 h-4" />
-              Mis alertas
-            </Link>
-            <Link
-              href="/perfil"
-              className="text-sm text-piedra hover:text-azul transition-colors font-medium px-3 py-1.5 rounded-md hover:bg-tiza/30 inline-flex items-center gap-1.5"
-              aria-label="Mi perfil"
-            >
-              <User className="w-4 h-4" />
-              Mi perfil
-            </Link>
-            <Link
-              href="/admin"
-              prefetch={false}
-              className="text-sm text-piedra hover:text-azul transition-colors font-medium px-3 py-1.5 rounded-md hover:bg-tiza/30 inline-flex items-center gap-1.5"
-            >
-              <Settings className="w-4 h-4" />
-              Admin
-            </Link>
+            {NAV_LINKS.map(({ href, label, icon: Icon, noPrefetch }) => (
+              <Link
+                key={href}
+                href={href}
+                prefetch={noPrefetch ? false : undefined}
+                aria-label={label}
+                className="inline-flex items-center gap-1.5 text-sm text-piedra hover:text-azul transition-colors font-medium px-3 py-1.5 rounded-md hover:bg-tiza/30"
+              >
+                <Icon className="w-4 h-4" />
+                {label}
+              </Link>
+            ))}
           </div>
 
-          <div className="flex items-center md:hidden space-x-1">
-            <Link
-              href="/ofertas"
-              className="text-sm text-piedra hover:text-azul transition-colors font-medium px-3 py-1.5"
-            >
-              Ofertas
-            </Link>
-            <Link
-              href="/alertas"
-              prefetch={false}
-              className="text-sm text-piedra hover:text-azul transition-colors font-medium px-3 py-1.5"
-              aria-label="Mis alertas"
-            >
-              <Bell className="w-5 h-5" />
-            </Link>
-            <Link
-              href="/perfil"
-              className="text-sm text-piedra hover:text-azul transition-colors font-medium px-3 py-1.5"
-              aria-label="Mi perfil"
-            >
-              <User className="w-5 h-5" />
-            </Link>
-            <Link
-              href="/admin"
-              prefetch={false}
-              className="text-sm text-piedra hover:text-azul transition-colors font-medium px-3 py-1.5"
-              aria-label="Administración"
-            >
-              <Settings className="w-5 h-5" />
-            </Link>
-          </div>
+          <button
+            type="button"
+            onClick={() => setOpen((prev) => !prev)}
+            aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
+            aria-expanded={open}
+            className="flex items-center justify-center md:hidden p-2 rounded-lg text-azul hover:bg-tiza/40 transition-colors"
+          >
+            {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
       </div>
+
+      {open && (
+        <div className="md:hidden border-t border-tiza bg-arena/95 backdrop-blur-md shadow-lg">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2 space-y-1">
+            {NAV_LINKS.map(
+              ({ href, label, icon: Icon, noPrefetch }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  prefetch={noPrefetch ? false : undefined}
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-azul rounded-lg hover:bg-tiza/40 transition-colors"
+                >
+                  <Icon className="w-5 h-5 text-piedra" />
+                  {label}
+                </Link>
+              ),
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 }
