@@ -480,6 +480,7 @@ export default function PerfilPage() {
                               day: 'numeric',
                               month: 'short',
                               year: 'numeric',
+                              timeZone: 'America/Santiago',
                             })
                           : '-'}
                       </p>

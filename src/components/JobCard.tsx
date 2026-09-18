@@ -25,6 +25,7 @@ function formatDate(dateStr: string | null): string | null {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
+      timeZone: 'America/Santiago',
     });
   } catch {
     return null;
