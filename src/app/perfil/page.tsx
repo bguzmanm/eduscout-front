@@ -12,9 +12,11 @@ import {
   Bell,
   Loader2,
   Download,
+  KeyRound,
 } from 'lucide-react';
 import {
   CandidateProfile,
+  changeCandidatePassword,
   clearCandidateToken,
   downloadCandidateCv,
   getCandidateMe,
@@ -80,6 +82,15 @@ export default function PerfilPage() {
   const [cvError, setCvError] = useState<string | null>(null);
   const [cvLoading, setCvLoading] = useState(false);
   const [cvDownloadName, setCvDownloadName] = useState<string | null>(null);
+
+  const [pwCurrent, setPwCurrent] = useState('');
+  const [pwNew, setPwNew] = useState('');
+  const [pwConfirm, setPwConfirm] = useState('');
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwMessage, setPwMessage] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
 
   const hydrated = useHydrated();
 
@@ -157,6 +168,35 @@ export default function PerfilPage() {
       setSavedMessage((err as Error).message);
     } finally {
       setPhoneLoading(false);
+    }
+  }
+
+  async function handleChangePassword(e: FormEvent) {
+    e.preventDefault();
+    const t = getCandidateToken();
+    if (!t) return;
+    if (pwNew !== pwConfirm) {
+      setPwMessage({
+        type: 'error',
+        text: 'Las contraseñas nuevas no coinciden.',
+      });
+      return;
+    }
+    setPwLoading(true);
+    setPwMessage(null);
+    try {
+      await changeCandidatePassword(t, {
+        currentPassword: pwCurrent,
+        newPassword: pwNew,
+      });
+      setPwCurrent('');
+      setPwNew('');
+      setPwConfirm('');
+      setPwMessage({ type: 'success', text: 'Contraseña actualizada con éxito.' });
+    } catch (err) {
+      setPwMessage({ type: 'error', text: (err as Error).message });
+    } finally {
+      setPwLoading(false);
     }
   }
 
@@ -313,6 +353,16 @@ export default function PerfilPage() {
                   <p className="text-xs text-piedra mt-1">
                     Mínimo 8 caracteres, con letras y números.
                   </p>
+                )}
+                {mode === 'login' && (
+                  <div className="flex justify-end mt-1">
+                    <Link
+                      href="/recuperar"
+                      className="text-xs font-medium text-azul hover:text-marino underline underline-offset-2 transition-colors"
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </Link>
+                  </div>
                 )}
               </div>
 
@@ -478,6 +528,95 @@ export default function PerfilPage() {
               </div>
               {cvError && (
                 <p className="text-sm text-red-700 mt-3">{cvError}</p>
+              )}
+            </div>
+
+            <div className="bg-white border border-tiza rounded-xl p-8">
+              <h3 className="text-lg font-display font-bold text-azul mb-4 flex items-center gap-2">
+                <KeyRound className="w-5 h-5 text-piedra" />
+                Cambiar contraseña
+              </h3>
+              <form onSubmit={handleChangePassword} className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="pw-current"
+                    className="block text-sm font-medium text-azul mb-1"
+                  >
+                    Contraseña actual
+                  </label>
+                  <input
+                    id="pw-current"
+                    type="password"
+                    autoComplete="current-password"
+                    value={pwCurrent}
+                    onChange={(e) => setPwCurrent(e.target.value)}
+                    required
+                    className="w-full px-3 py-2 border border-tiza rounded-lg text-sm text-azul focus:outline-none focus:ring-2 focus:ring-dorado/50 focus:border-dorado transition-colors"
+                    placeholder="••••••••"
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label
+                      htmlFor="pw-new"
+                      className="block text-sm font-medium text-azul mb-1"
+                    >
+                      Nueva contraseña
+                    </label>
+                    <input
+                      id="pw-new"
+                      type="password"
+                      autoComplete="new-password"
+                      value={pwNew}
+                      onChange={(e) => setPwNew(e.target.value)}
+                      required
+                      minLength={8}
+                      maxLength={100}
+                      className="w-full px-3 py-2 border border-tiza rounded-lg text-sm text-azul focus:outline-none focus:ring-2 focus:ring-dorado/50 focus:border-dorado transition-colors"
+                      placeholder="••••••••"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="pw-confirm"
+                      className="block text-sm font-medium text-azul mb-1"
+                    >
+                      Repetir nueva contraseña
+                    </label>
+                    <input
+                      id="pw-confirm"
+                      type="password"
+                      autoComplete="new-password"
+                      value={pwConfirm}
+                      onChange={(e) => setPwConfirm(e.target.value)}
+                      required
+                      minLength={8}
+                      maxLength={100}
+                      className="w-full px-3 py-2 border border-tiza rounded-lg text-sm text-azul focus:outline-none focus:ring-2 focus:ring-dorado/50 focus:border-dorado transition-colors"
+                      placeholder="••••••••"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-piedra mt-1">
+                  Mínimo 8 caracteres, con letras y números.
+                </p>
+                <button
+                  type="submit"
+                  disabled={pwLoading}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-azul rounded-lg hover:bg-azul/90 transition-colors disabled:opacity-60"
+                >
+                  {pwLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Cambiar contraseña
+                </button>
+              </form>
+              {pwMessage && (
+                <p
+                  className={`text-sm mt-3 ${
+                    pwMessage.type === 'error' ? 'text-red-700' : 'text-green-700'
+                  }`}
+                >
+                  {pwMessage.text}
+                </p>
               )}
             </div>
 

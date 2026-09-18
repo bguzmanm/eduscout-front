@@ -369,6 +369,47 @@ export function updateCandidateMe(
   }, token);
 }
 
+export function changeCandidatePassword(
+  token: string,
+  data: { currentPassword: string; newPassword: string },
+): Promise<{ message: string }> {
+  return candidateRequest<{ message: string }>(
+    '/api/candidates/me/password',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    },
+    token,
+  );
+}
+
+export function requestPasswordReset(
+  data: { email: string },
+): Promise<{ message: string }> {
+  return candidateRequest<{ message: string }>(
+    '/api/candidates/forgot-password',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    },
+  );
+}
+
+export function resetCandidatePassword(
+  data: { token: string; newPassword: string },
+): Promise<{ message: string }> {
+  return candidateRequest<{ message: string }>(
+    '/api/candidates/reset-password',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    },
+  );
+}
+
 export async function uploadCandidateCv(
   token: string,
   file: File,
