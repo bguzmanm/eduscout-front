@@ -332,6 +332,12 @@ export default function PerfilPage() {
                   className="w-full px-3 py-2 border border-tiza rounded-lg text-sm text-azul focus:outline-none focus:ring-2 focus:ring-dorado/50 focus:border-dorado transition-colors"
                   placeholder="tu@correo.cl"
                 />
+                {mode === 'register' && (
+                  <p className="text-xs text-piedra mt-1">
+                    Lo usaremos solo para iniciar sesión y, si activas una alerta,
+                    enviarte nuevas ofertas.
+                  </p>
+                )}
               </div>
 
               <div>
@@ -387,6 +393,13 @@ export default function PerfilPage() {
                   'Crear mi perfil'
                 )}
               </button>
+
+              {mode === 'register' && (
+                <p className="text-xs text-piedra mt-3 text-center">
+                  Tus datos se usan solo para autenticación, alertas y sugerencias
+                  de ofertas. No los compartimos con terceros.
+                </p>
+              )}
             </form>
           </div>
         ) : (
@@ -440,6 +453,10 @@ export default function PerfilPage() {
                     className="w-full px-3 py-2 border border-tiza rounded-lg text-sm text-azul focus:outline-none focus:ring-2 focus:ring-dorado/50 focus:border-dorado transition-colors"
                     placeholder="+56 9 1234 5678"
                   />
+                  <p className="text-xs text-piedra mt-1">
+                    Opcional. Lo usaremos únicamente para avisarte de nuevas ofertas
+                    si activas una alerta.
+                  </p>
                 </div>
                 <button
                   type="button"
@@ -461,8 +478,8 @@ export default function PerfilPage() {
                 Mi CV
               </h3>
               <p className="text-sm text-piedra mb-4">
-                Adjunta tu CV en formato PDF (máx. 5 MB). Próximamente se procesará
-                con IA para sugerirte ofertas afines.
+                Adjunta tu CV en formato PDF (máx. 5 MB). Tu CV se usará solo para
+                sugerirte ofertas que calcen con tu perfil; aún no se procesa con IA.
               </p>
 
               {profile.cv.fileName && (
