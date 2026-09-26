@@ -69,7 +69,7 @@ export default async function FuentesPage() {
     <div className="pt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <h1 className="text-3xl font-display font-bold text-azul mb-2">
-          Fuentes de datos
+          Fuentes de Ofertas
         </h1>
         <p className="text-sm text-piedra mb-8">
           Universidades e instituciones de las que recopilamos ofertas

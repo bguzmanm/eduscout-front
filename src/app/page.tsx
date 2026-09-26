@@ -57,13 +57,14 @@ export default async function HomePage() {
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-display font-bold text-azul tracking-tight">
-            El portal laboral
+            El primer recopilador
             <br />
-            <span className="text-dorado">para la educación superior</span>
+            <span className="text-dorado">de ofertas laborales del mundo académico</span>
           </h1>
           <p className="mt-4 text-lg text-piedra max-w-2xl mx-auto leading-relaxed">
-            Recopilamos y clasificamos cientos de ofertas laborales para docentes de educación superior, y te las dejamos a un solo click de distancia.
+            Recopilamos y clasificamos cientos de ofertas laborales para docentes de educación superior, para que encuentres en un solo lugar las oportunidades que buscas.
           </p>
+          <p className="mt-4 text-lg text-piedra max-w-2xl mx-auto text-center">Tu próximo desafío docente puede estar aquí!</p>
           <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
             <Link
               href="/ofertas"
@@ -77,7 +78,7 @@ export default async function HomePage() {
               className="inline-flex items-center justify-center gap-2 border border-tiza text-azul px-6 py-3 rounded-md text-sm font-semibold hover:border-dorado transition-colors"
             >
               <Building2 className="w-4 h-4" />
-              Ver fuentes
+              Ver instituciones
             </Link>
           </div>
         </div>
@@ -97,7 +98,7 @@ export default async function HomePage() {
                 <p className="text-3xl font-display font-bold text-dorado">
                   {stats.activeSources}
                 </p>
-                <p className="text-sm text-piedra mt-1">Fuentes activas</p>
+                <p className="text-sm text-piedra mt-1">Universidades<br/>Institutos Profesionales</p>
               </div>
               <div className="bg-arena border border-tiza rounded-lg p-6 text-center">
                 <p className="text-3xl font-display font-bold text-dorado">
@@ -124,8 +125,7 @@ export default async function HomePage() {
                 Recopilamos
               </h3>
               <p className="text-sm text-piedra mt-2">
-                Buscamos automáticamente en las páginas de las principales
-                universidades del país.
+                Buscamos automáticamente ofertas laborales en los sitios web de universidades e instituciones de educación superior del país.
               </p>
             </div>
             <div className="text-center">
@@ -136,8 +136,7 @@ export default async function HomePage() {
                 Organizamos
               </h3>
               <p className="text-sm text-piedra mt-2">
-                Estandarizamos la información para que puedas comparar ofertas
-                fácilmente.
+                Reunimos y ordenamos la información para que puedas revisar y comparar las ofertas de manera fácil y rápida.
               </p>
             </div>
             <div className="text-center">
@@ -148,8 +147,7 @@ export default async function HomePage() {
                 Te dirigimos
               </h3>
               <p className="text-sm text-piedra mt-2">
-                Cuando encontraste la ideal, te llevamos directo al sitio de la
-                universidad para postular.
+                ¿Encontraste una oferta que te interesa? Te llevamos directamente al sitio de la institución para que puedas postular.
               </p>
             </div>
           </div>
