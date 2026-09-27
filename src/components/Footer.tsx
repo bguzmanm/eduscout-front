@@ -42,7 +42,7 @@ export default function Footer() {
                   href="/fuentes"
                   className="text-sm text-piedra hover:text-azul transition-colors"
                 >
-                  Ver fuentes
+                  Ver instituciones
                 </Link>
               </li>
             </ul>
@@ -75,6 +75,7 @@ export default function Footer() {
 
         <div className="mt-12 pt-8 border-t border-tiza flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-piedra">
           <p>© 2026 EduScout</p>
+          <p>Desarrollado por <a href="https://bgm-solutions.cl">bgm-solutions</a></p>
         </div>
       </div>
     </footer>

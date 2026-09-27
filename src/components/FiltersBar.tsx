@@ -57,7 +57,7 @@ export default function FiltersBar({
         onChange={(e) => handleChange('source', e.target.value)}
         className={selectClass}
       >
-        <option value="">Todas las fuentes</option>
+        <option value="">Todas las instituciones</option>
         {sources.map((s) => (
           <option key={s.value} value={s.value}>
             {s.label}
