@@ -108,6 +108,10 @@
 }
 
 .rich-text {
+  /* El HTML scrapeado trae &nbsp; y URLs largas: sin esto ninguna frase es
+     divisible y el ancho mínimo del bloque revienta el layout en móvil. */
+  overflow-wrap: anywhere;
+
   p {
     margin-bottom: 0.75rem;
   }

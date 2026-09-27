@@ -158,10 +158,10 @@ export default async function OfertaDetailPage({ params, searchParams }: Props) 
           ← Volver a ofertas
         </Link>
 
-        <div className="bg-arena border border-tiza rounded-2xl p-8">
+        <div className="bg-arena border border-tiza rounded-2xl p-5 sm:p-8 wrap-anywhere">
           <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-4">
-              <div>
+            <div className="flex items-start gap-4 min-w-0">
+              <div className="min-w-0">
                 <h1 className="text-2xl font-display font-bold text-azul">
                   {job.title}
                 </h1>
@@ -174,7 +174,7 @@ export default async function OfertaDetailPage({ params, searchParams }: Props) 
               src={job.sourceLogoUrl}
               name={job.sourceName}
               size={72}
-              className="mt-1"
+              className="mt-1 shrink-0"
             />
           </div>
 
