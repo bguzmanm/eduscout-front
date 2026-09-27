@@ -1,3 +1,6 @@
+// Debe coincidir con REGIONS de eduscout-back (src/common/utils/regions.ts):
+// son los 16 nombres canónicos cortos con los que el backend normaliza
+// jobs.region. El orden va por volumen de ofertas y luego geográfico.
 export const REGIONS = [
   'Metropolitana',
   'Valparaíso',
@@ -9,6 +12,12 @@ export const REGIONS = [
   'Los Lagos',
   'Antofagasta',
   'Coquimbo',
+  'Tarapacá',
+  'Arica y Parinacota',
+  'Atacama',
+  'Los Ríos',
+  'Aysén',
+  'Magallanes',
 ];
 
 export const JOB_TYPES = [
