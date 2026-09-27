@@ -85,6 +85,28 @@
   }
 }
 
+.marquee-mask {
+  -webkit-mask-image: linear-gradient(90deg, transparent, black 6%, black 94%, transparent);
+  mask-image: linear-gradient(90deg, transparent, black 6%, black 94%, transparent);
+}
+
+.marquee-track {
+  animation: marquee-scroll 55s linear infinite;
+}
+
+.marquee-link:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 .rich-text {
   p {
     margin-bottom: 0.75rem;

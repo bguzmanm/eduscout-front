@@ -1,8 +1,9 @@
 import { Search, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { getJobs, getJobStats } from '@/lib/api';
+import { getJobs, getJobStats, getSources } from '@/lib/api';
 import SourceLogo from '@/components/SourceLogo';
+import SourceMarquee from '@/components/SourceMarquee';
 import JsonLd from '@/components/JsonLd';
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from '@/lib/site';
 
@@ -16,15 +17,18 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   let recentJobs: Awaited<ReturnType<typeof getJobs>>['items'] = [];
+  let sources: Awaited<ReturnType<typeof getSources>> = [];
   let stats: { totalActive: number; activeSources: number; bySource: { source: string; count: number }[]; byRegion: { region: string; count: number }[] } | null = null;
 
   try {
-    const [jobsRes, statsRes] = await Promise.all([
+    const [jobsRes, statsRes, sourcesRes] = await Promise.all([
       getJobs({ limit: 6 }),
       getJobStats(),
+      getSources().catch(() => []),
     ]);
     recentJobs = jobsRes.items;
     stats = statsRes;
+    sources = sourcesRes;
   } catch {
     // Backend not available
   }
@@ -110,6 +114,8 @@ export default async function HomePage() {
           </div>
         </section>
       )}
+
+      <SourceMarquee sources={sources} />
 
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
