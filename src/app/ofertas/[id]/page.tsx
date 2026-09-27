@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import { MapPin, Clock, Calendar, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import SourceLogo from '@/components/SourceLogo';
+import SaveButton from '@/components/SaveButton';
+import ShareMenu from '@/components/ShareMenu';
 import JsonLd from '@/components/JsonLd';
 import DOMPurify from 'isomorphic-dompurify';
 import type { Metadata } from 'next';
@@ -247,16 +249,24 @@ export default async function OfertaDetailPage({ params, searchParams }: Props) 
             </div>
           )}
 
-          <div className="mt-8 pt-6 border-t border-tiza">
+          <div className="mt-8 pt-6 border-t border-tiza flex flex-col sm:flex-row sm:items-center gap-3">
             <a
               href={job.applyUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-dorado text-white px-6 py-3 rounded-md text-sm font-semibold hover:opacity-90 transition-opacity"
+              className="inline-flex items-center justify-center gap-2 bg-dorado text-white px-6 py-3 rounded-md text-sm font-semibold hover:opacity-90 transition-opacity"
             >
               Postular en {job.sourceName}
               <ExternalLink className="w-4 h-4" />
             </a>
+            <div className="flex items-center gap-2 sm:ml-auto">
+              <SaveButton jobId={job.id} variant="label" />
+              <ShareMenu
+                jobId={job.id}
+                title={job.title}
+                variant="label"
+              />
+            </div>
           </div>
         </div>
       </div>

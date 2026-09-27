@@ -3,6 +3,7 @@ import { Sen, Work_Sans, JetBrains_Mono } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import RibbonBadge from "@/components/RibbonBadge";
 import Footer from "@/components/Footer";
+import { SavedJobsProvider } from "@/components/SavedJobsProvider";
 import { SITE_URL, SITE_NAME, SITE_TITLE, SITE_DESCRIPTION } from "@/lib/site";
 import "./globals.css";
 
@@ -76,7 +77,7 @@ export default function RootLayout({
           <RibbonBadge />
           <Navbar />
           <main className="flex-grow">
-            {children}
+            <SavedJobsProvider>{children}</SavedJobsProvider>
           </main>
           <Footer />
         </div>

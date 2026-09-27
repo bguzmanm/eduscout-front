@@ -27,8 +27,17 @@ import {
   updateCandidateMe,
   uploadCandidateCv,
 } from '@/lib/api';
+import AlertsPanel from '@/components/AlertsPanel';
+import SavedJobsPanel from '@/components/SavedJobsPanel';
 
 type AuthMode = 'login' | 'register';
+type PerfilTab = 'datos' | 'alertas' | 'guardados';
+
+const TABS: { value: PerfilTab; label: string }[] = [
+  { value: 'datos', label: 'Mis datos' },
+  { value: 'alertas', label: 'Mis alertas' },
+  { value: 'guardados', label: 'Mis guardados' },
+];
 
 const MAX_CV_SIZE = 5 * 1024 * 1024;
 
@@ -46,9 +55,27 @@ function useHydrated(): boolean {
   );
 }
 
+function subscribeToUrl(callback: () => void) {
+  window.addEventListener('popstate', callback);
+  return () => window.removeEventListener('popstate', callback);
+}
+
+function readTabFromUrl(): PerfilTab {
+  const tab = new URLSearchParams(window.location.search).get('tab');
+  if (tab === 'alertas' || tab === 'guardados') return tab;
+  return 'datos';
+}
+
+function useUrlTab(): PerfilTab {
+  return useSyncExternalStore(
+    subscribeToUrl,
+    readTabFromUrl,
+    (): PerfilTab => 'datos',
+  );
+}
+
 function isPdfFile(file: File): boolean {
   return !(file.type && file.type !== 'application/pdf');
-
 }
 
 function isPdfMagic(buffer: ArrayBuffer): boolean {
@@ -65,6 +92,8 @@ function isPdfMagic(buffer: ArrayBuffer): boolean {
 
 export default function PerfilPage() {
   const [profile, setProfile] = useState<CandidateProfile | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const tab = useUrlTab();
   const [loading, setLoading] = useState(true);
 
   const [mode, setMode] = useState<AuthMode>('login');
@@ -108,12 +137,14 @@ export default function PerfilPage() {
         const me = await getCandidateMe(t);
         if (!cancelled) {
           setProfile(me);
+          setToken(t);
           setPhone(me.phone ?? '');
         }
       } catch {
         if (!cancelled) {
           clearCandidateToken();
           setProfile(null);
+          setToken(null);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -123,6 +154,15 @@ export default function PerfilPage() {
       cancelled = true;
     };
   }, []);
+
+  function selectTab(next: PerfilTab) {
+    window.history.replaceState(
+      null,
+      '',
+      next === 'datos' ? '/perfil' : `/perfil?tab=${next}`,
+    );
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }
 
   async function handleAuthSubmit(e: FormEvent) {
     e.preventDefault();
@@ -149,6 +189,7 @@ export default function PerfilPage() {
   function handleLogout() {
     clearCandidateToken();
     setProfile(null);
+    setToken(null);
     setAuthEmail('');
     setAuthPassword('');
     setAuthName('');
@@ -192,7 +233,10 @@ export default function PerfilPage() {
       setPwCurrent('');
       setPwNew('');
       setPwConfirm('');
-      setPwMessage({ type: 'success', text: 'Contraseña actualizada con éxito.' });
+      setPwMessage({
+        type: 'success',
+        text: 'Contraseña actualizada con éxito.',
+      });
     } catch (err) {
       setPwMessage({ type: 'error', text: (err as Error).message });
     } finally {
@@ -258,7 +302,7 @@ export default function PerfilPage() {
           Mi perfil
         </h1>
 
-        {!profile ? (
+        {!profile || !token ? (
           <div className="bg-white border border-tiza rounded-xl p-8">
             <div className="text-center mb-8">
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-azul/10 mb-4">
@@ -303,7 +347,10 @@ export default function PerfilPage() {
 
               {mode === 'register' && (
                 <div>
-                  <label htmlFor="auth-name" className="block text-sm font-medium text-azul mb-1">
+                  <label
+                    htmlFor="auth-name"
+                    className="block text-sm font-medium text-azul mb-1"
+                  >
                     Nombre completo
                   </label>
                   <input
@@ -319,7 +366,10 @@ export default function PerfilPage() {
               )}
 
               <div>
-                <label htmlFor="auth-email" className="block text-sm font-medium text-azul mb-1">
+                <label
+                  htmlFor="auth-email"
+                  className="block text-sm font-medium text-azul mb-1"
+                >
                   Correo electrónico
                 </label>
                 <input
@@ -334,14 +384,17 @@ export default function PerfilPage() {
                 />
                 {mode === 'register' && (
                   <p className="text-xs text-piedra mt-1">
-                    Lo usaremos solo para iniciar sesión y, si activas una alerta,
-                    enviarte nuevas ofertas.
+                    Lo usaremos solo para iniciar sesión y, si activas una
+                    alerta, enviarte nuevas ofertas.
                   </p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="auth-password" className="block text-sm font-medium text-azul mb-1">
+                <label
+                  htmlFor="auth-password"
+                  className="block text-sm font-medium text-azul mb-1"
+                >
                   Contraseña
                 </label>
                 <input
@@ -349,7 +402,9 @@ export default function PerfilPage() {
                   type="password"
                   required
                   minLength={mode === 'register' ? 8 : undefined}
-                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                  autoComplete={
+                    mode === 'login' ? 'current-password' : 'new-password'
+                  }
                   value={authPassword}
                   onChange={(e) => setAuthPassword(e.target.value)}
                   className="w-full px-3 py-2 border border-tiza rounded-lg text-sm text-azul focus:outline-none focus:ring-2 focus:ring-dorado/50 focus:border-dorado transition-colors"
@@ -396,256 +451,299 @@ export default function PerfilPage() {
 
               {mode === 'register' && (
                 <p className="text-xs text-piedra mt-3 text-center">
-                  Tus datos se usan solo para autenticación, alertas y sugerencias
-                  de ofertas. No los compartimos con terceros.
+                  Tus datos se usan solo para autenticación, alertas y
+                  sugerencias de ofertas. No los compartimos con terceros.
                 </p>
               )}
             </form>
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="bg-white border border-tiza rounded-xl p-8">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-                <div className="w-16 h-16 rounded-full bg-azul/10 flex items-center justify-center shrink-0">
-                  <span className="text-xl font-display font-bold text-azul">
-                    {profile.name
-                      .split(' ')
-                      .map((p) => p[0])
-                      .slice(0, 2)
-                      .join('')
-                      .toUpperCase()}
-                  </span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-xl font-display font-bold text-azul truncate">
-                    {profile.name}
-                  </h2>
-                  <p className="text-sm text-piedra flex items-center gap-1.5 mt-0.5">
-                    <Mail className="w-3.5 h-3.5" />
-                    {profile.email}
-                  </p>
-                </div>
-                <Link
-                  href="/alertas"
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-azul rounded-lg hover:bg-marino transition-colors shrink-0"
-                >
-                  <Bell className="w-4 h-4" />
-                  Ver mis alertas
-                </Link>
-              </div>
-            </div>
-
-            <div className="bg-white border border-tiza rounded-xl p-8">
-              <h3 className="text-lg font-display font-bold text-azul mb-4">
-                Información de contacto
-              </h3>
-              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
-                <div className="flex-1 w-full">
-                  <label htmlFor="phone" className="block text-sm font-medium text-azul mb-1 flex items-center gap-1.5">
-                    <Phone className="w-3.5 h-3.5" />
-                    Teléfono (opcional)
-                  </label>
-                  <input
-                    id="phone"
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-3 py-2 border border-tiza rounded-lg text-sm text-azul focus:outline-none focus:ring-2 focus:ring-dorado/50 focus:border-dorado transition-colors"
-                    placeholder="+56 9 1234 5678"
-                  />
-                  <p className="text-xs text-piedra mt-1">
-                    Opcional. Lo usaremos únicamente para avisarte de nuevas ofertas
-                    si activas una alerta.
-                  </p>
-                </div>
+            <div
+              className="flex rounded-lg bg-tiza/40 p-1 w-fit"
+              role="tablist"
+            >
+              {TABS.map(({ value, label }) => (
                 <button
+                  key={value}
                   type="button"
-                  onClick={handleSavePhone}
-                  disabled={phoneLoading}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-azul rounded-lg hover:bg-azul/90 transition-colors disabled:opacity-60 w-full sm:w-auto justify-center"
-                >
-                  {phoneLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Guardar
-                </button>
-              </div>
-              {savedMessage && (
-                <p className="text-sm text-piedra mt-2">{savedMessage}</p>
-              )}
-            </div>
-
-            <div className="bg-white border border-tiza rounded-xl p-8">
-              <h3 className="text-lg font-display font-bold text-azul mb-2">
-                Mi CV
-              </h3>
-              <p className="text-sm text-piedra mb-4">
-                Adjunta tu CV en formato PDF (máx. 5 MB). Tu CV se usará solo para
-                sugerirte ofertas que calcen con tu perfil; aún no se procesa con IA.
-              </p>
-
-              {profile.cv.fileName && (
-                <div className="flex items-center justify-between gap-4 bg-tiza/40 rounded-lg px-4 py-3 mb-4">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <FileText className="w-5 h-5 text-azul shrink-0" />
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-azul truncate">
-                        {profile.cv.fileName}
-                      </p>
-                      <p className="text-xs text-piedra">
-                        {formatSize(profile.cv.sizeBytes)} · subido el{' '}
-                        {profile.cv.uploadedAt
-                          ? new Date(profile.cv.uploadedAt).toLocaleDateString('es-CL', {
-                              day: 'numeric',
-                              month: 'short',
-                              year: 'numeric',
-                              timeZone: 'America/Santiago',
-                            })
-                          : '-'}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      if (profile.cv.fileName) {
-                        setCvDownloadName(profile.cv.fileName);
-                        await handleDownloadCv();
-                      }
-                    }}
-                    className="inline-flex items-center gap-1.5 text-sm font-medium text-azul hover:text-marino transition-colors shrink-0"
-                  >
-                    <Download className="w-4 h-4" />
-                    Descargar
-                  </button>
-                </div>
-              )}
-
-              <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-                <input
-                  id="cv-file"
-                  type="file"
-                  accept="application/pdf,.pdf"
-                  onChange={(e) => {
-                    setCvFile(e.target.files?.[0] ?? null);
-                    setCvError(null);
-                  }}
-                  className="block w-full text-sm text-piedra file:mr-4 file:px-4 file:py-2 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-azul/10 file:text-azul hover:file:bg-azul/20 file:cursor-pointer transition-colors"
-                />
-                <button
-                  type="button"
-                  onClick={handleUploadCv}
-                  disabled={!cvFile || cvLoading}
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-dorado rounded-lg hover:bg-dorado/90 transition-colors disabled:opacity-50"
-                >
-                  {cvLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Upload className="w-4 h-4" />
-                  )}
-                  {profile.cv.fileName ? 'Reemplazar CV' : 'Subir CV'}
-                </button>
-              </div>
-              {cvError && (
-                <p className="text-sm text-red-700 mt-3">{cvError}</p>
-              )}
-            </div>
-
-            <div className="bg-white border border-tiza rounded-xl p-8">
-              <h3 className="text-lg font-display font-bold text-azul mb-4 flex items-center gap-2">
-                <KeyRound className="w-5 h-5 text-piedra" />
-                Cambiar contraseña
-              </h3>
-              <form onSubmit={handleChangePassword} className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="pw-current"
-                    className="block text-sm font-medium text-azul mb-1"
-                  >
-                    Contraseña actual
-                  </label>
-                  <input
-                    id="pw-current"
-                    type="password"
-                    autoComplete="current-password"
-                    value={pwCurrent}
-                    onChange={(e) => setPwCurrent(e.target.value)}
-                    required
-                    className="w-full px-3 py-2 border border-tiza rounded-lg text-sm text-azul focus:outline-none focus:ring-2 focus:ring-dorado/50 focus:border-dorado transition-colors"
-                    placeholder="••••••••"
-                  />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label
-                      htmlFor="pw-new"
-                      className="block text-sm font-medium text-azul mb-1"
-                    >
-                      Nueva contraseña
-                    </label>
-                    <input
-                      id="pw-new"
-                      type="password"
-                      autoComplete="new-password"
-                      value={pwNew}
-                      onChange={(e) => setPwNew(e.target.value)}
-                      required
-                      minLength={8}
-                      maxLength={100}
-                      className="w-full px-3 py-2 border border-tiza rounded-lg text-sm text-azul focus:outline-none focus:ring-2 focus:ring-dorado/50 focus:border-dorado transition-colors"
-                      placeholder="••••••••"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="pw-confirm"
-                      className="block text-sm font-medium text-azul mb-1"
-                    >
-                      Repetir nueva contraseña
-                    </label>
-                    <input
-                      id="pw-confirm"
-                      type="password"
-                      autoComplete="new-password"
-                      value={pwConfirm}
-                      onChange={(e) => setPwConfirm(e.target.value)}
-                      required
-                      minLength={8}
-                      maxLength={100}
-                      className="w-full px-3 py-2 border border-tiza rounded-lg text-sm text-azul focus:outline-none focus:ring-2 focus:ring-dorado/50 focus:border-dorado transition-colors"
-                      placeholder="••••••••"
-                    />
-                  </div>
-                </div>
-                <p className="text-xs text-piedra mt-1">
-                  Mínimo 8 caracteres, con letras y números.
-                </p>
-                <button
-                  type="submit"
-                  disabled={pwLoading}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-azul rounded-lg hover:bg-azul/90 transition-colors disabled:opacity-60"
-                >
-                  {pwLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Cambiar contraseña
-                </button>
-              </form>
-              {pwMessage && (
-                <p
-                  className={`text-sm mt-3 ${
-                    pwMessage.type === 'error' ? 'text-red-700' : 'text-green-700'
+                  role="tab"
+                  aria-selected={tab === value}
+                  onClick={() => selectTab(value)}
+                  className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    tab === value
+                      ? 'bg-white text-azul shadow-sm'
+                      : 'text-piedra hover:text-azul'
                   }`}
                 >
-                  {pwMessage.text}
-                </p>
-              )}
+                  {label}
+                </button>
+              ))}
             </div>
 
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="inline-flex items-center gap-2 text-sm font-medium text-piedra hover:text-red-700 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              Cerrar sesión
-            </button>
+            {tab === 'alertas' ? (
+              <AlertsPanel token={token} />
+            ) : tab === 'guardados' ? (
+              <SavedJobsPanel token={token} />
+            ) : (
+              <>
+                <div className="bg-white border border-tiza rounded-xl p-8">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+                    <div className="w-16 h-16 rounded-full bg-azul/10 flex items-center justify-center shrink-0">
+                      <span className="text-xl font-display font-bold text-azul">
+                        {profile.name
+                          .split(' ')
+                          .map((p) => p[0])
+                          .slice(0, 2)
+                          .join('')
+                          .toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-xl font-display font-bold text-azul truncate">
+                        {profile.name}
+                      </h2>
+                      <p className="text-sm text-piedra flex items-center gap-1.5 mt-0.5">
+                        <Mail className="w-3.5 h-3.5" />
+                        {profile.email}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => selectTab('alertas')}
+                      className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-azul rounded-lg hover:bg-marino transition-colors shrink-0"
+                    >
+                      <Bell className="w-4 h-4" />
+                      Ver mis alertas
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-white border border-tiza rounded-xl p-8">
+                  <h3 className="text-lg font-display font-bold text-azul mb-4">
+                    Información de contacto
+                  </h3>
+                  <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
+                    <div className="flex-1 w-full">
+                      <label
+                        htmlFor="phone"
+                        className="block text-sm font-medium text-azul mb-1 flex items-center gap-1.5"
+                      >
+                        <Phone className="w-3.5 h-3.5" />
+                        Teléfono (opcional)
+                      </label>
+                      <input
+                        id="phone"
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className="w-full px-3 py-2 border border-tiza rounded-lg text-sm text-azul focus:outline-none focus:ring-2 focus:ring-dorado/50 focus:border-dorado transition-colors"
+                        placeholder="+56 9 1234 5678"
+                      />
+                      <p className="text-xs text-piedra mt-1">
+                        Opcional. Lo usaremos únicamente para avisarte de nuevas
+                        ofertas si activas una alerta.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSavePhone}
+                      disabled={phoneLoading}
+                      className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-azul rounded-lg hover:bg-azul/90 transition-colors disabled:opacity-60 w-full sm:w-auto justify-center"
+                    >
+                      {phoneLoading && (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      )}
+                      Guardar
+                    </button>
+                  </div>
+                  {savedMessage && (
+                    <p className="text-sm text-piedra mt-2">{savedMessage}</p>
+                  )}
+                </div>
+
+                <div className="bg-white border border-tiza rounded-xl p-8">
+                  <h3 className="text-lg font-display font-bold text-azul mb-2">
+                    Mi CV
+                  </h3>
+                  <p className="text-sm text-piedra mb-4">
+                    Adjunta tu CV en formato PDF (máx. 5 MB). Tu CV se usará
+                    solo para sugerirte ofertas que calcen con tu perfil; aún no
+                    se procesa con IA.
+                  </p>
+
+                  {profile.cv.fileName && (
+                    <div className="flex items-center justify-between gap-4 bg-tiza/40 rounded-lg px-4 py-3 mb-4">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <FileText className="w-5 h-5 text-azul shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-azul truncate">
+                            {profile.cv.fileName}
+                          </p>
+                          <p className="text-xs text-piedra">
+                            {formatSize(profile.cv.sizeBytes)} · subido el{' '}
+                            {profile.cv.uploadedAt
+                              ? new Date(
+                                  profile.cv.uploadedAt,
+                                ).toLocaleDateString('es-CL', {
+                                  day: 'numeric',
+                                  month: 'short',
+                                  year: 'numeric',
+                                  timeZone: 'America/Santiago',
+                                })
+                              : '-'}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (profile.cv.fileName) {
+                            setCvDownloadName(profile.cv.fileName);
+                            await handleDownloadCv();
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 text-sm font-medium text-azul hover:text-marino transition-colors shrink-0"
+                      >
+                        <Download className="w-4 h-4" />
+                        Descargar
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                    <input
+                      id="cv-file"
+                      type="file"
+                      accept="application/pdf,.pdf"
+                      onChange={(e) => {
+                        setCvFile(e.target.files?.[0] ?? null);
+                        setCvError(null);
+                      }}
+                      className="block w-full text-sm text-piedra file:mr-4 file:px-4 file:py-2 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-azul/10 file:text-azul hover:file:bg-azul/20 file:cursor-pointer transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleUploadCv}
+                      disabled={!cvFile || cvLoading}
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-dorado rounded-lg hover:bg-dorado/90 transition-colors disabled:opacity-50"
+                    >
+                      {cvLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Upload className="w-4 h-4" />
+                      )}
+                      {profile.cv.fileName ? 'Reemplazar CV' : 'Subir CV'}
+                    </button>
+                  </div>
+                  {cvError && (
+                    <p className="text-sm text-red-700 mt-3">{cvError}</p>
+                  )}
+                </div>
+
+                <div className="bg-white border border-tiza rounded-xl p-8">
+                  <h3 className="text-lg font-display font-bold text-azul mb-4 flex items-center gap-2">
+                    <KeyRound className="w-5 h-5 text-piedra" />
+                    Cambiar contraseña
+                  </h3>
+                  <form onSubmit={handleChangePassword} className="space-y-4">
+                    <div>
+                      <label
+                        htmlFor="pw-current"
+                        className="block text-sm font-medium text-azul mb-1"
+                      >
+                        Contraseña actual
+                      </label>
+                      <input
+                        id="pw-current"
+                        type="password"
+                        autoComplete="current-password"
+                        value={pwCurrent}
+                        onChange={(e) => setPwCurrent(e.target.value)}
+                        required
+                        className="w-full px-3 py-2 border border-tiza rounded-lg text-sm text-azul focus:outline-none focus:ring-2 focus:ring-dorado/50 focus:border-dorado transition-colors"
+                        placeholder="••••••••"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label
+                          htmlFor="pw-new"
+                          className="block text-sm font-medium text-azul mb-1"
+                        >
+                          Nueva contraseña
+                        </label>
+                        <input
+                          id="pw-new"
+                          type="password"
+                          autoComplete="new-password"
+                          value={pwNew}
+                          onChange={(e) => setPwNew(e.target.value)}
+                          required
+                          minLength={8}
+                          maxLength={100}
+                          className="w-full px-3 py-2 border border-tiza rounded-lg text-sm text-azul focus:outline-none focus:ring-2 focus:ring-dorado/50 focus:border-dorado transition-colors"
+                          placeholder="••••••••"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="pw-confirm"
+                          className="block text-sm font-medium text-azul mb-1"
+                        >
+                          Repetir nueva contraseña
+                        </label>
+                        <input
+                          id="pw-confirm"
+                          type="password"
+                          autoComplete="new-password"
+                          value={pwConfirm}
+                          onChange={(e) => setPwConfirm(e.target.value)}
+                          required
+                          minLength={8}
+                          maxLength={100}
+                          className="w-full px-3 py-2 border border-tiza rounded-lg text-sm text-azul focus:outline-none focus:ring-2 focus:ring-dorado/50 focus:border-dorado transition-colors"
+                          placeholder="••••••••"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-piedra mt-1">
+                      Mínimo 8 caracteres, con letras y números.
+                    </p>
+                    <button
+                      type="submit"
+                      disabled={pwLoading}
+                      className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-azul rounded-lg hover:bg-azul/90 transition-colors disabled:opacity-60"
+                    >
+                      {pwLoading && (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      )}
+                      Cambiar contraseña
+                    </button>
+                  </form>
+                  {pwMessage && (
+                    <p
+                      className={`text-sm mt-3 ${
+                        pwMessage.type === 'error'
+                          ? 'text-red-700'
+                          : 'text-green-700'
+                      }`}
+                    >
+                      {pwMessage.text}
+                    </p>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="inline-flex items-center gap-2 text-sm font-medium text-piedra hover:text-red-700 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Cerrar sesión
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>

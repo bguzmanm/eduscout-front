@@ -3,13 +3,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Settings, Bell, User, Search, Compass, Menu, X } from 'lucide-react';
+import { Settings, User, Search, Compass, Menu, X } from 'lucide-react';
 
 const NAV_LINKS = [
   { href: '/ofertas', label: 'Buscar ofertas', icon: Search },
-  { href: '/fuentes', label: 'Fuentes', icon: Compass },
-  { href: '/alertas', label: 'Mis alertas', icon: Bell, noPrefetch: true },
-  { href: '/perfil', label: 'Mi perfil', icon: User },
+  { href: '/fuentes', label: 'Instituciones', icon: Compass },
+  { href: '/perfil', label: 'Mi perfil', icon: User, noPrefetch: true },
   { href: '/admin', label: 'Admin', icon: Settings, noPrefetch: true },
 ];
 

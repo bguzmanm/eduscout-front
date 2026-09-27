@@ -521,3 +521,39 @@ export function getAlertMatches(
 ): Promise<AlertMatch[]> {
   return candidateRequest<AlertMatch[]>(`/api/alerts/${id}/matches`, {}, token);
 }
+
+export interface SavedJob {
+  id: number;
+  savedAt: string;
+  job: Job | null;
+}
+
+export function getSavedJobs(token: string): Promise<SavedJob[]> {
+  return candidateRequest<SavedJob[]>('/api/saved-jobs', {}, token);
+}
+
+export function getSavedJobIds(token: string): Promise<number[]> {
+  return candidateRequest<{ jobIds: number[] }>('/api/saved-jobs/ids', {}, token).then(
+    (res) => res.jobIds,
+  );
+}
+
+export function saveJob(
+  token: string,
+  jobId: number,
+): Promise<{ jobId: number; saved: boolean; created: boolean }> {
+  return candidateRequest('/api/saved-jobs', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jobId }),
+  }, token);
+}
+
+export function unsaveJob(
+  token: string,
+  jobId: number,
+): Promise<{ message: string }> {
+  return candidateRequest<{ message: string }>(`/api/saved-jobs/${jobId}`, {
+    method: 'DELETE',
+  }, token);
+}

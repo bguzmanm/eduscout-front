@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { MapPin, Clock, ExternalLink } from 'lucide-react';
+import { MapPin, Clock } from 'lucide-react';
 import SourceLogo from './SourceLogo';
+import SaveButton from './SaveButton';
+import ShareMenu from './ShareMenu';
 
 interface JobCardProps {
   id: number;
@@ -46,20 +48,25 @@ export default function JobCard({
   const href = `/ofertas/${id}${backUrl ? `?from=${encodeURIComponent(backUrl)}` : ''}`;
 
   return (
-    <Link
-      href={href}
-      className="block bg-arena border border-tiza rounded-lg p-5 hover:border-dorado transition-colors"
-    >
+    <article className="relative bg-arena border border-tiza rounded-lg p-5 hover:border-dorado transition-colors">
+      <Link
+        href={href}
+        className="absolute inset-0 rounded-lg focus-visible:outline-offset-4"
+      >
+        <span className="sr-only">{title}</span>
+      </Link>
+
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <h3 className="text-base font-semibold text-azul font-display truncate">
             {title}
           </h3>
-          {company && (
-            <p className="text-sm text-piedra mt-1">{company}</p>
-          )}
+          {company && <p className="text-sm text-piedra mt-1">{company}</p>}
         </div>
-        <ExternalLink className="w-4 h-4 text-piedra shrink-0 mt-1" />
+        <div className="relative z-10 flex items-center gap-1 shrink-0">
+          <ShareMenu jobId={id} title={title} />
+          <SaveButton jobId={id} />
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-3 mt-3 text-xs text-piedra">
@@ -88,6 +95,6 @@ export default function JobCard({
           {sourceName}
         </span>
       </div>
-    </Link>
+    </article>
   );
 }
