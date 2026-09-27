@@ -73,15 +73,6 @@ export default function SourceMarquee({ sources }: { sources: Source[] }) {
             </div>
           </div>
         </Link>
-
-        <div className="mt-8 text-center">
-          <Link
-            href="/fuentes"
-            className="text-sm text-dorado hover:opacity-80 font-semibold"
-          >
-            Ver todas las instituciones →
-          </Link>
-        </div>
       </div>
     </section>
   );

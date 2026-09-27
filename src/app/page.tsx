@@ -88,6 +88,8 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <SourceMarquee sources={sources} />
+
       {stats && (
         <section className="py-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
@@ -115,7 +117,6 @@ export default async function HomePage() {
         </section>
       )}
 
-      <SourceMarquee sources={sources} />
 
       <section className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
