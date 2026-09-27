@@ -159,6 +159,11 @@ export default async function OfertaDetailPage({ params, searchParams }: Props) 
         </Link>
 
         <div className="bg-arena border border-tiza rounded-2xl p-5 sm:p-8 wrap-anywhere">
+          <div className="flex items-center justify-end gap-2 mb-4">
+            <SaveButton jobId={job.id} variant="label" />
+            <ShareMenu jobId={job.id} title={job.title} variant="label" />
+          </div>
+
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-4 min-w-0">
               <div className="min-w-0">

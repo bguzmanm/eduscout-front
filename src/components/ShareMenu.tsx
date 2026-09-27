@@ -209,6 +209,9 @@ export default function ShareMenu({
   }
 
   const label = copied ? 'Enlace copiado' : 'Compartir oferta';
+  // Texto visible más corto que el aria-label: con "Compartir oferta" los dos
+  // botones de la tarjeta (guardar + compartir) no cabían en 375px.
+  const triggerText = copied ? 'Enlace copiado' : 'Compartir';
   const base = 'inline-flex items-center justify-center gap-2 font-medium transition-colors';
   const sizing =
     variant === 'icon' ? 'p-2 rounded-full shrink-0' : 'px-4 py-2.5 text-sm rounded-lg shrink-0';
@@ -229,7 +232,7 @@ export default function ShareMenu({
         className={`${base} ${sizing} ${tones} ${className}`}
       >
         {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
-        {variant === 'label' && <span>{label}</span>}
+        {variant === 'label' && <span>{triggerText}</span>}
       </button>
 
       {open &&
