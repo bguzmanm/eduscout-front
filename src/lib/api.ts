@@ -238,6 +238,9 @@ export interface AdminCandidate {
   cvFileName: string | null;
   cvStatus: string;
   cvUploadedAt: string | null;
+  notifyByEmail: boolean;
+  notifyByTelegram: boolean;
+  telegramLinked: boolean;
   alertCount: number;
   activeAlertCount: number;
   matchCount: number;

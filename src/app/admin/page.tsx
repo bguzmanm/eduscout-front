@@ -153,6 +153,37 @@ function cvStatusInfo(candidate: AdminCandidate | undefined): {
   }
 }
 
+function NotificationChannels({ candidate }: { candidate: AdminCandidate }) {
+  if (!candidate.notifyByEmail && !candidate.notifyByTelegram) {
+    return <span className="text-xs text-piedra">Ninguna</span>;
+  }
+  return (
+    <div className="flex flex-wrap gap-1">
+      {candidate.notifyByEmail && (
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border text-azul bg-azul/5 border-azul/20">
+          Correo
+        </span>
+      )}
+      {candidate.notifyByTelegram && (
+        <span
+          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
+            candidate.telegramLinked
+              ? 'text-azul bg-azul/5 border-azul/20'
+              : 'text-piedra bg-tiza/60 border-tiza'
+          }`}
+          title={
+            candidate.telegramLinked
+              ? 'Telegram vinculado'
+              : 'Telegram sin vincular'
+          }
+        >
+          Telegram{candidate.telegramLinked ? '' : ' (sin vincular)'}
+        </span>
+      )}
+    </div>
+  );
+}
+
 function CandidateAlertsDetail({
   candidateName,
   alerts,
@@ -974,6 +1005,9 @@ export default function AdminPage() {
                             <th className="text-center font-semibold text-azul px-5 py-3 font-display">
                               Alertas
                             </th>
+                            <th className="text-left font-semibold text-azul px-5 py-3 font-display">
+                              Notificación
+                            </th>
                             <th className="text-right font-semibold text-azul px-5 py-3 font-display hidden sm:table-cell">
                               Coincidencias
                             </th>
@@ -1043,13 +1077,16 @@ export default function AdminPage() {
                                       · {candidate.activeAlertCount} activas
                                     </span>
                                   </td>
+                                  <td className="px-5 py-4">
+                                    <NotificationChannels candidate={candidate} />
+                                  </td>
                                   <td className="px-5 py-4 text-right font-medium text-azul hidden sm:table-cell">
                                     {candidate.matchCount}
                                   </td>
                                 </tr>
                                 {isExpanded && (
                                   <tr className="border-b border-tiza/60 bg-arena/60">
-                                    <td colSpan={6} className="px-5 py-4">
+                                    <td colSpan={7} className="px-5 py-4">
                                       <CandidateAlertsDetail
                                         candidateName={candidate.name}
                                         alerts={candidateAlerts[candidate.id]}
