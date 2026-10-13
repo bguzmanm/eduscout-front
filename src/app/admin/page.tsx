@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import SourceLogo from '@/components/SourceLogo';
 import {
+  getAdminCandidateAlerts,
   getAdminCandidateStats,
   getAdminCandidates,
   getScrapingReport,
@@ -11,9 +12,11 @@ import {
   runScraping,
   updateSource,
   type AdminCandidate,
+  type AdminCandidateAlert,
   type AdminCandidateStats,
   type ScrapingRun,
 } from '@/lib/api';
+import { CATEGORIES } from '@/lib/filters';
 import {
   RefreshCw,
   LogOut,
@@ -21,6 +24,10 @@ import {
   Users,
   LayoutGrid,
   Activity,
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+  Bell,
 } from 'lucide-react';
 
 const SESSION_COOKIE = 'eduscout_admin_session';
@@ -111,6 +118,12 @@ function percent(part: number, total: number): string {
 
 type CvFilter = 'all' | 'with' | 'without';
 
+type AlertState = 'all' | 'active' | 'inactive';
+
+function categoryLabel(value: string): string {
+  return CATEGORIES.find((c) => c.value === value)?.label ?? value;
+}
+
 function cvStatusInfo(candidate: AdminCandidate | undefined): {
   label: string;
   className: string;
@@ -138,6 +151,129 @@ function cvStatusInfo(candidate: AdminCandidate | undefined): {
         className: 'text-dorado bg-yellow-50 border-yellow-200',
       };
   }
+}
+
+function CandidateAlertsDetail({
+  candidateName,
+  alerts,
+  loading,
+  error,
+}: {
+  candidateName: string;
+  alerts: AdminCandidateAlert[] | undefined;
+  loading: boolean;
+  error: string | undefined;
+}) {
+  if (loading && !alerts) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-piedra">
+        <Loader2 className="w-4 h-4 animate-spin" />
+        Cargando alertas…
+      </div>
+    );
+  }
+
+  if (error && !alerts) {
+    return (
+      <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-2.5">
+        {error}
+      </div>
+    );
+  }
+
+  if (!alerts || alerts.length === 0) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-piedra">
+        <Bell className="w-4 h-4" />
+        {candidateName} no ha configurado alertas.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs font-semibold text-piedra uppercase tracking-wide">
+        Alertas configuradas ({alerts.length})
+      </p>
+      {alerts.map((alert) => {
+        const criteriaCount =
+          alert.categories.length +
+          alert.regions.length +
+          alert.jobTypes.length +
+          alert.keywords.length;
+        return (
+          <div
+            key={alert.id}
+            className="bg-white border border-tiza rounded-lg p-4"
+          >
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <h4 className="text-sm font-display font-bold text-azul">
+                {alert.name}
+              </h4>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-piedra">
+                  {alert.matchCount} oferta
+                  {alert.matchCount === 1 ? '' : 's'} coincidente
+                  {alert.matchCount === 1 ? '' : 's'}
+                </span>
+                <span
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${
+                    alert.isActive
+                      ? 'text-green-700 bg-green-50 border-green-200'
+                      : 'text-piedra bg-tiza/60 border-tiza'
+                  }`}
+                >
+                  {alert.isActive ? 'Activa' : 'Pausada'}
+                </span>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {alert.categories.map((c) => (
+                <span
+                  key={`cat-${c}`}
+                  className="px-2 py-0.5 rounded-full text-xs font-medium bg-dorado/15 text-dorado"
+                >
+                  {categoryLabel(c)}
+                </span>
+              ))}
+              {alert.regions.map((r) => (
+                <span
+                  key={`reg-${r}`}
+                  className="px-2 py-0.5 rounded-full text-xs font-medium bg-azul/10 text-azul"
+                >
+                  {r}
+                </span>
+              ))}
+              {alert.jobTypes.map((jt) => (
+                <span
+                  key={`jt-${jt}`}
+                  className="px-2 py-0.5 rounded-full text-xs font-medium bg-tiza text-piedra"
+                >
+                  {jt}
+                </span>
+              ))}
+              {alert.keywords.map((k) => (
+                <span
+                  key={`kw-${k}`}
+                  className="px-2 py-0.5 rounded-full text-xs font-medium bg-tiza text-piedra"
+                >
+                  {k}
+                </span>
+              ))}
+              {criteriaCount === 0 && (
+                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-tiza text-piedra">
+                  Todas las ofertas
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-piedra/70 mt-2">
+              Creada el {formatDate(alert.createdAt)}
+            </p>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 function StatCard({
@@ -182,6 +318,20 @@ export default function AdminPage() {
   const [candidatesQ, setCandidatesQ] = useState('');
   const [candidatesQInput, setCandidatesQInput] = useState('');
   const [candidatesCvFilter, setCandidatesCvFilter] = useState<CvFilter>('all');
+  const [candidatesAlertState, setCandidatesAlertState] =
+    useState<AlertState>('all');
+  const [expandedCandidates, setExpandedCandidates] = useState<
+    Record<number, boolean>
+  >({});
+  const [candidateAlerts, setCandidateAlerts] = useState<
+    Record<number, AdminCandidateAlert[]>
+  >({});
+  const [candidateAlertsLoading, setCandidateAlertsLoading] = useState<
+    Record<number, boolean>
+  >({});
+  const [candidateAlertsError, setCandidateAlertsError] = useState<
+    Record<number, string>
+  >({});
   const [candidatesLoading, setCandidatesLoading] = useState(false);
   const [candidatesError, setCandidatesError] = useState<string | null>(null);
 
@@ -300,6 +450,7 @@ export default function AdminPage() {
       limit: 20,
       q: candidatesQ || undefined,
       hasCv,
+      alertState: candidatesAlertState,
     })
       .then((result) => {
         if (!cancelled) {
@@ -318,7 +469,14 @@ export default function AdminPage() {
     return () => {
       cancelled = true;
     };
-  }, [tab, dataVersion, candidatesPage, candidatesQ, candidatesCvFilter]);
+  }, [
+    tab,
+    dataVersion,
+    candidatesPage,
+    candidatesQ,
+    candidatesCvFilter,
+    candidatesAlertState,
+  ]);
 
   function selectTab(next: TabKey) {
     if (next === 'fuentes' && lastLoaded.current.fuentes !== dataVersion) {
@@ -371,6 +529,42 @@ export default function AdminPage() {
     setCandidatesCvFilter(next);
     setCandidatesLoading(true);
     setCandidatesError(null);
+  }
+
+  function changeAlertState(next: AlertState) {
+    setCandidatesPage(1);
+    setCandidatesAlertState(next);
+    setCandidatesLoading(true);
+    setCandidatesError(null);
+  }
+
+  async function toggleCandidateAlerts(candidateId: number) {
+    const willExpand = !expandedCandidates[candidateId];
+    setExpandedCandidates((prev) => ({ ...prev, [candidateId]: willExpand }));
+
+    if (willExpand && !candidateAlerts[candidateId]) {
+      const token = getToken();
+      setCandidateAlertsLoading((prev) => ({ ...prev, [candidateId]: true }));
+      setCandidateAlertsError((prev) => {
+        const next = { ...prev };
+        delete next[candidateId];
+        return next;
+      });
+      try {
+        const alerts = await getAdminCandidateAlerts(token ?? '', candidateId);
+        setCandidateAlerts((prev) => ({ ...prev, [candidateId]: alerts }));
+      } catch {
+        setCandidateAlertsError((prev) => ({
+          ...prev,
+          [candidateId]: 'No se pudieron cargar las alertas.',
+        }));
+      } finally {
+        setCandidateAlertsLoading((prev) => ({
+          ...prev,
+          [candidateId]: false,
+        }));
+      }
+    }
   }
 
   function goToCandidatePage(next: number) {
@@ -732,6 +926,17 @@ export default function AdminPage() {
                         <option value="with">Con CV</option>
                         <option value="without">Sin CV</option>
                       </select>
+                      <select
+                        value={candidatesAlertState}
+                        onChange={(event) =>
+                          changeAlertState(event.target.value as AlertState)
+                        }
+                        className="px-3 py-2 text-sm border border-tiza rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-dorado/60"
+                      >
+                        <option value="all">Todas las alertas</option>
+                        <option value="active">Con alertas activas</option>
+                        <option value="inactive">Con alertas pausadas</option>
+                      </select>
                     </div>
                   </div>
 
@@ -754,6 +959,9 @@ export default function AdminPage() {
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="border-b border-tiza bg-arena/60">
+                            <th className="w-10 px-3 py-3">
+                              <span className="sr-only">Ver alertas</span>
+                            </th>
                             <th className="text-left font-semibold text-azul px-5 py-3 font-display">
                               Postulante
                             </th>
@@ -774,50 +982,90 @@ export default function AdminPage() {
                         <tbody>
                           {candidates.map((candidate) => {
                             const cv = cvStatusInfo(candidate);
+                            const isExpanded =
+                              expandedCandidates[candidate.id] ?? false;
                             return (
-                              <tr
-                                key={candidate.id}
-                                className="border-b border-tiza/60 last:border-0 hover:bg-arena/40 transition-colors"
-                              >
-                                <td className="px-5 py-4">
-                                  <p className="font-medium text-azul">
-                                    {candidate.name}
-                                  </p>
-                                  <p className="text-xs text-piedra truncate max-w-[220px]">
-                                    {candidate.email}
-                                    {candidate.phone
-                                      ? ` · ${candidate.phone}`
-                                      : ''}
-                                  </p>
-                                </td>
-                                <td className="px-5 py-4 text-xs text-piedra hidden md:table-cell whitespace-nowrap">
-                                  {formatDate(candidate.createdAt)}
-                                </td>
-                                <td className="px-5 py-4">
-                                  <span
-                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${cv.className}`}
-                                  >
-                                    {cv.label}
-                                  </span>
-                                  {candidate.cvUploadedAt && (
-                                    <p className="text-xs text-piedra mt-1">
-                                      {formatDate(candidate.cvUploadedAt)}
+                              <Fragment key={candidate.id}>
+                                <tr className="border-b border-tiza/60 hover:bg-arena/40 transition-colors">
+                                  <td className="px-3 py-4 text-center align-top">
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        toggleCandidateAlerts(candidate.id)
+                                      }
+                                      aria-expanded={isExpanded}
+                                      aria-label={
+                                        isExpanded
+                                          ? `Ocultar alertas de ${candidate.name}`
+                                          : `Ver alertas de ${candidate.name}`
+                                      }
+                                      className="p-1.5 rounded-lg text-piedra hover:text-azul hover:bg-tiza/50 transition-colors"
+                                    >
+                                      {isExpanded ? (
+                                        <ChevronUp className="w-4 h-4" />
+                                      ) : (
+                                        <ChevronDown className="w-4 h-4" />
+                                      )}
+                                    </button>
+                                  </td>
+                                  <td className="px-5 py-4">
+                                    <p className="font-medium text-azul">
+                                      {candidate.name}
                                     </p>
-                                  )}
-                                </td>
-                                <td className="px-5 py-4 text-center">
-                                  <span className="font-bold text-azul">
-                                    {candidate.alertCount}
-                                  </span>
-                                  <span className="text-xs text-piedra">
-                                    {' '}
-                                    · {candidate.activeAlertCount} activas
-                                  </span>
-                                </td>
-                                <td className="px-5 py-4 text-right font-medium text-azul hidden sm:table-cell">
-                                  {candidate.matchCount}
-                                </td>
-                              </tr>
+                                    <p className="text-xs text-piedra truncate max-w-[220px]">
+                                      {candidate.email}
+                                      {candidate.phone
+                                        ? ` · ${candidate.phone}`
+                                        : ''}
+                                    </p>
+                                  </td>
+                                  <td className="px-5 py-4 text-xs text-piedra hidden md:table-cell whitespace-nowrap">
+                                    {formatDate(candidate.createdAt)}
+                                  </td>
+                                  <td className="px-5 py-4">
+                                    <span
+                                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${cv.className}`}
+                                    >
+                                      {cv.label}
+                                    </span>
+                                    {candidate.cvUploadedAt && (
+                                      <p className="text-xs text-piedra mt-1">
+                                        {formatDate(candidate.cvUploadedAt)}
+                                      </p>
+                                    )}
+                                  </td>
+                                  <td className="px-5 py-4 text-center">
+                                    <span className="font-bold text-azul">
+                                      {candidate.alertCount}
+                                    </span>
+                                    <span className="text-xs text-piedra">
+                                      {' '}
+                                      · {candidate.activeAlertCount} activas
+                                    </span>
+                                  </td>
+                                  <td className="px-5 py-4 text-right font-medium text-azul hidden sm:table-cell">
+                                    {candidate.matchCount}
+                                  </td>
+                                </tr>
+                                {isExpanded && (
+                                  <tr className="border-b border-tiza/60 bg-arena/60">
+                                    <td colSpan={6} className="px-5 py-4">
+                                      <CandidateAlertsDetail
+                                        candidateName={candidate.name}
+                                        alerts={candidateAlerts[candidate.id]}
+                                        loading={
+                                          candidateAlertsLoading[
+                                            candidate.id
+                                          ] ?? false
+                                        }
+                                        error={
+                                          candidateAlertsError[candidate.id]
+                                        }
+                                      />
+                                    </td>
+                                  </tr>
+                                )}
+                              </Fragment>
                             );
                           })}
                         </tbody>

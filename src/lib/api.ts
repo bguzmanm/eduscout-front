@@ -252,6 +252,7 @@ export async function getAdminCandidates(
     limit?: number;
     q?: string;
     hasCv?: boolean;
+    alertState?: 'all' | 'active' | 'inactive';
   } = {},
 ): Promise<PaginatedResponse<AdminCandidate>> {
   const searchParams = new URLSearchParams();
@@ -261,11 +262,39 @@ export async function getAdminCandidates(
   if (params.hasCv !== undefined) {
     searchParams.set('hasCv', String(params.hasCv));
   }
+  if (params.alertState && params.alertState !== 'all') {
+    searchParams.set('alertState', params.alertState);
+  }
   const res = await fetch(`/api/admin/candidates?${searchParams.toString()}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error(`Error ${res.status}`);
   return unwrap<PaginatedResponse<AdminCandidate>>(res);
+}
+
+export interface AdminCandidateAlert {
+  id: number;
+  name: string;
+  keywords: string[];
+  regions: string[];
+  jobTypes: string[];
+  categories: string[];
+  isActive: boolean;
+  matchCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function getAdminCandidateAlerts(
+  token: string,
+  candidateId: number,
+): Promise<AdminCandidateAlert[]> {
+  const res = await fetch(`/api/admin/candidates/${candidateId}/alerts`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`Error ${res.status}`);
+  const data = await unwrap<{ items: AdminCandidateAlert[] }>(res);
+  return data.items;
 }
 
 export interface CandidateCv {
