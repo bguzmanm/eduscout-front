@@ -305,12 +305,19 @@ export interface CandidateCv {
   uploadedAt: string | null;
 }
 
+export interface CandidateNotifications {
+  email: boolean;
+  telegram: boolean;
+  telegramLinked: boolean;
+}
+
 export interface CandidateProfile {
   id: number;
   name: string;
   email: string;
   phone: string | null;
   cv: CandidateCv;
+  notifications: CandidateNotifications;
   createdAt: string;
   updatedAt: string;
 }
@@ -427,13 +434,36 @@ export function getCandidateMe(token: string): Promise<CandidateProfile> {
 
 export function updateCandidateMe(
   token: string,
-  data: { name?: string; phone?: string },
+  data: {
+    name?: string;
+    phone?: string;
+    notifyByEmail?: boolean;
+    notifyByTelegram?: boolean;
+  },
 ): Promise<CandidateProfile> {
   return candidateRequest<CandidateProfile>('/api/candidates/me', {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   }, token);
+}
+
+export function createTelegramLink(
+  token: string,
+): Promise<{ url: string; code: string; linked: boolean }> {
+  return candidateRequest<{ url: string; code: string; linked: boolean }>(
+    '/api/candidates/me/telegram/link',
+    { method: 'POST' },
+    token,
+  );
+}
+
+export function unlinkTelegram(token: string): Promise<{ message: string }> {
+  return candidateRequest<{ message: string }>(
+    '/api/candidates/me/telegram/link',
+    { method: 'DELETE' },
+    token,
+  );
 }
 
 export function changeCandidatePassword(

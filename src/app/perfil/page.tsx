@@ -13,17 +13,20 @@ import {
   Loader2,
   Download,
   KeyRound,
+  Send,
 } from 'lucide-react';
 import {
   CandidateProfile,
   changeCandidatePassword,
   clearCandidateToken,
+  createTelegramLink,
   downloadCandidateCv,
   getCandidateMe,
   getCandidateToken,
   loginCandidate,
   registerCandidate,
   setCandidateToken,
+  unlinkTelegram,
   updateCandidateMe,
   uploadCandidateCv,
 } from '@/lib/api';
@@ -107,6 +110,16 @@ export default function PerfilPage() {
   const [phoneLoading, setPhoneLoading] = useState(false);
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
 
+  const [notifyEmail, setNotifyEmail] = useState(true);
+  const [notifyTelegram, setNotifyTelegram] = useState(false);
+  const [notifyLoading, setNotifyLoading] = useState(false);
+  const [notifyMessage, setNotifyMessage] = useState<string | null>(null);
+  const [telegramLoading, setTelegramLoading] = useState(false);
+  const [telegramMessage, setTelegramMessage] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
+
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [cvError, setCvError] = useState<string | null>(null);
   const [cvLoading, setCvLoading] = useState(false);
@@ -139,6 +152,8 @@ export default function PerfilPage() {
           setProfile(me);
           setToken(t);
           setPhone(me.phone ?? '');
+          setNotifyEmail(me.notifications?.email ?? true);
+          setNotifyTelegram(me.notifications?.telegram ?? false);
         }
       } catch {
         if (!cancelled) {
@@ -209,6 +224,100 @@ export default function PerfilPage() {
       setSavedMessage((err as Error).message);
     } finally {
       setPhoneLoading(false);
+    }
+  }
+
+  function applyProfile(updated: CandidateProfile) {
+    setProfile(updated);
+    setNotifyEmail(updated.notifications?.email ?? true);
+    setNotifyTelegram(updated.notifications?.telegram ?? false);
+  }
+
+  async function handleSaveNotifications() {
+    const t = getCandidateToken();
+    if (!t) return;
+    setNotifyLoading(true);
+    setNotifyMessage(null);
+    try {
+      const updated = await updateCandidateMe(t, {
+        notifyByEmail: notifyEmail,
+        notifyByTelegram: notifyTelegram,
+      });
+      applyProfile(updated);
+      setNotifyMessage('Preferencias de notificación guardadas.');
+    } catch (err) {
+      setNotifyMessage((err as Error).message);
+    } finally {
+      setNotifyLoading(false);
+    }
+  }
+
+  async function handleLinkTelegram() {
+    const t = getCandidateToken();
+    if (!t) return;
+    setTelegramLoading(true);
+    setTelegramMessage(null);
+    try {
+      const link = await createTelegramLink(t);
+      if (!link.url) {
+        setTelegramMessage({
+          type: 'error',
+          text: 'El bot de Telegram no está disponible por ahora. Inténtalo más tarde.',
+        });
+        return;
+      }
+      window.open(link.url, '_blank', 'noopener,noreferrer');
+      setTelegramMessage({
+        type: 'success',
+        text: 'Abrimos Telegram en una pestaña nueva. Presiona "Iniciar" en el bot y luego vuelve aquí a actualizar el estado.',
+      });
+    } catch (err) {
+      setTelegramMessage({ type: 'error', text: (err as Error).message });
+    } finally {
+      setTelegramLoading(false);
+    }
+  }
+
+  async function handleRefreshTelegram() {
+    const t = getCandidateToken();
+    if (!t) return;
+    setTelegramLoading(true);
+    setTelegramMessage(null);
+    try {
+      const updated = await getCandidateMe(t);
+      applyProfile(updated);
+      setTelegramMessage(
+        updated.notifications?.telegramLinked
+          ? { type: 'success', text: '¡Telegram vinculado! Ya recibirás tus alertas por aquí.' }
+          : {
+              type: 'error',
+              text: 'Aún no detectamos la vinculación. Abre el bot y presiona "Iniciar".',
+            },
+      );
+    } catch (err) {
+      setTelegramMessage({ type: 'error', text: (err as Error).message });
+    } finally {
+      setTelegramLoading(false);
+    }
+  }
+
+  async function handleUnlinkTelegram() {
+    const t = getCandidateToken();
+    if (!t) return;
+    setTelegramLoading(true);
+    setTelegramMessage(null);
+    try {
+      await unlinkTelegram(t);
+      const updated = await getCandidateMe(t);
+      applyProfile(updated);
+      setTelegramMessage({
+        type: 'success',
+        text: 'Telegram desvinculado con éxito.',
+      });
+    } catch (err) {
+      setTelegramMessage({ type: 'error', text: (err as Error).message });
+    } finally {
+      setTelegramLoading(false);
     }
   }
 
@@ -560,6 +669,159 @@ export default function PerfilPage() {
                   {savedMessage && (
                     <p className="text-sm text-piedra mt-2">{savedMessage}</p>
                   )}
+                </div>
+
+                <div className="bg-white border border-tiza rounded-xl p-8">
+                  <h3 className="text-lg font-display font-bold text-azul mb-2">
+                    Notificaciones
+                  </h3>
+                  <p className="text-sm text-piedra mb-5">
+                    Elige cómo quieres recibir las nuevas ofertas que calcen con
+                    tus alertas. La preferencia aplica a todas tus alertas.
+                  </p>
+
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start gap-3">
+                        <Mail className="w-5 h-5 text-azul mt-0.5 shrink-0" />
+                        <div>
+                          <p className="text-sm font-medium text-azul">
+                            Correo electrónico
+                          </p>
+                          <p className="text-xs text-piedra mt-0.5">
+                            Te enviamos un resumen a {profile.email}.
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={notifyEmail}
+                        aria-label="Notificaciones por correo electrónico"
+                        onClick={() => {
+                          setNotifyEmail((v) => !v);
+                          setNotifyMessage(null);
+                        }}
+                        className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+                          notifyEmail ? 'bg-azul' : 'bg-tiza'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                            notifyEmail ? 'translate-x-5' : 'translate-x-0.5'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    <div className="border-t border-tiza/60 pt-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-start gap-3">
+                          <Send className="w-5 h-5 text-azul mt-0.5 shrink-0" />
+                          <div>
+                            <p className="text-sm font-medium text-azul">
+                              Telegram
+                            </p>
+                            <p className="text-xs text-piedra mt-0.5">
+                              {profile.notifications?.telegramLinked
+                                ? 'Tu cuenta está vinculada al bot de EduScout.'
+                                : 'Conéctalo con el bot una sola vez para recibir alertas al instante.'}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={notifyTelegram}
+                          aria-label="Notificaciones por Telegram"
+                          onClick={() => {
+                            setNotifyTelegram((v) => !v);
+                            setNotifyMessage(null);
+                          }}
+                          className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+                            notifyTelegram ? 'bg-azul' : 'bg-tiza'
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                              notifyTelegram ? 'translate-x-5' : 'translate-x-0.5'
+                            }`}
+                          />
+                        </button>
+                      </div>
+
+                      <div className="mt-3 flex flex-wrap items-center gap-3">
+                        {profile.notifications?.telegramLinked ? (
+                          <>
+                            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-green-700">
+                              ● Conectado
+                            </span>
+                            <button
+                              type="button"
+                              onClick={handleUnlinkTelegram}
+                              disabled={telegramLoading}
+                              className="text-xs font-medium text-red-700 hover:text-red-800 underline underline-offset-2 transition-colors disabled:opacity-60"
+                            >
+                              Desvincular Telegram
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              onClick={handleLinkTelegram}
+                              disabled={telegramLoading}
+                              className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-white bg-azul rounded-lg hover:bg-azul/90 transition-colors disabled:opacity-60"
+                            >
+                              {telegramLoading ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Send className="w-3.5 h-3.5" />
+                              )}
+                              Vincular Telegram
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleRefreshTelegram}
+                              disabled={telegramLoading}
+                              className="text-xs font-medium text-azul hover:text-marino underline underline-offset-2 transition-colors disabled:opacity-60"
+                            >
+                              Ya vinculé, actualizar estado
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {telegramMessage && (
+                    <p
+                      className={`text-sm mt-3 ${
+                        telegramMessage.type === 'success'
+                          ? 'text-green-700'
+                          : 'text-red-700'
+                      }`}
+                    >
+                      {telegramMessage.text}
+                    </p>
+                  )}
+
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-5">
+                    <button
+                      type="button"
+                      onClick={handleSaveNotifications}
+                      disabled={notifyLoading}
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-azul rounded-lg hover:bg-azul/90 transition-colors disabled:opacity-60"
+                    >
+                      {notifyLoading && (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      )}
+                      Guardar preferencias
+                    </button>
+                    {notifyMessage && (
+                      <p className="text-sm text-piedra">{notifyMessage}</p>
+                    )}
+                  </div>
                 </div>
 
                 <div className="bg-white border border-tiza rounded-xl p-8">
