@@ -918,6 +918,52 @@ export default function AdminPage() {
                   </div>
                 </div>
 
+                <div className="bg-white border border-tiza rounded-xl p-5">
+                  <h3 className="text-sm font-display font-bold text-azul mb-1">
+                    Registros por canal
+                  </h3>
+                  <p className="text-xs text-piedra mb-3">
+                    Canal capturado al crear la cuenta (utm_source o sitio de
+                    referencia). Los registros anteriores a esta medición
+                    aparecen como «sin dato».
+                  </p>
+                  {candidateStats.registrationsBySource.length === 0 ? (
+                    <p className="text-sm text-piedra">
+                      Aún no hay registros con canal identificado.
+                    </p>
+                  ) : (
+                    <ul className="space-y-3 text-sm">
+                      {candidateStats.registrationsBySource.map((row) => (
+                        <li key={row.source}>
+                          <div className="flex items-center justify-between gap-3 mb-1">
+                            <span className="text-piedra truncate">
+                              {row.source}
+                            </span>
+                            <span className="font-bold text-azul shrink-0">
+                              {row.count}
+                              <span className="text-xs font-normal text-piedra">
+                                {' '}
+                                · {percent(row.count, candidateStats.totalCandidates)}
+                              </span>
+                            </span>
+                          </div>
+                          <div className="h-1.5 bg-arena rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-dorado"
+                              style={{
+                                width: percent(
+                                  row.count,
+                                  candidateStats.totalCandidates,
+                                ),
+                              }}
+                            />
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
                 <div className="bg-white border border-tiza rounded-xl overflow-hidden">
                   <div className="px-5 py-4 border-b border-tiza flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                     <div>

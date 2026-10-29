@@ -30,6 +30,7 @@ import {
   updateCandidateMe,
   uploadCandidateCv,
 } from '@/lib/api';
+import { getAttribution } from '@/lib/attribution';
 import AlertsPanel from '@/components/AlertsPanel';
 import SavedJobsPanel from '@/components/SavedJobsPanel';
 
@@ -191,6 +192,7 @@ export default function PerfilPage() {
               name: authName,
               email: authEmail,
               password: authPassword,
+              ...getAttribution(),
             });
       setCandidateToken(result.token);
       window.location.reload();

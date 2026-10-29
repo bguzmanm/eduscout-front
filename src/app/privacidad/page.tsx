@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   },
 };
 
-const lastUpdated = "11 de septiembre de 2026";
+const lastUpdated = "28 de octubre de 2026";
 
 export default function PrivacyPage() {
   return (
@@ -43,8 +43,13 @@ export default function PrivacyPage() {
               oficial de postulación.
             </p>
             <p className="text-piedra mt-3">
-              No solicitamos ni almacenamos datos personales de los visitantes:
-              EduScout no requiere registro, cuenta ni contraseña para su uso.
+              Buscar y revisar ofertas no requiere registro. De forma
+              opcional, puede crear una cuenta de postulante para guardar
+              ofertas, recibir alertas y adjuntar su currículum. En ese caso
+              almacenamos su nombre, correo electrónico, contraseña cifrada y,
+              si usted lo decide, teléfono, currículum en PDF y preferencias de
+              notificación. Puede eliminar esos datos solicitándolo por los
+              canales de contacto indicados más abajo.
             </p>
           </section>
 
@@ -54,15 +59,43 @@ export default function PrivacyPage() {
             </h2>
             <p className="text-piedra">
               Los datos que mostramos tienen un único propósito: facilitar la
-              búsqueda y comparación de oportunidades académicas. No vendemos,
-              cedemos ni compartimos información personal de los usuarios con
-              terceros.
+              búsqueda y comparación de oportunidades académicas. Los datos de
+              su cuenta se usan sólo para operar el servicio: autenticarlo,
+              enviarle las alertas que usted configure y permitirle postular
+              con su currículum. No vendemos, cedemos ni compartimos
+              información personal de los usuarios con terceros.
             </p>
           </section>
 
           <section>
             <h2 className="text-lg font-display font-bold text-azul mb-3">
-              3. Enlaces a sitios externos
+              3. Medición de audiencia
+            </h2>
+            <p className="text-piedra">
+              Para saber cuántas personas visitan el sitio y por qué canal
+              llegan, usamos dos mecanismos propios, sin cookies de terceros ni
+              publicidad:
+            </p>
+            <ul className="list-disc pl-5 mt-3 space-y-2 text-piedra">
+              <li>
+                <strong>Registros de acceso del servidor:</strong> cada
+                solicitud queda registrada con fecha, dirección IP, página
+                solicitada y agente de usuario. Se conservan por un período
+                acotado y se usan para operar el servicio y medir tráfico.
+              </li>
+              <li>
+                <strong>Almacenamiento local en su navegador:</strong> si llega
+                desde un enlace con parámetros de campaña o desde otro sitio,
+                guardamos en su propio navegador de qué canal provino. Ese dato
+                se asocia a su cuenta sólo si decide registrarse, y puede
+                borrarlo limpiando los datos del sitio en su navegador.
+              </li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-display font-bold text-azul mb-3">
+              4. Enlaces a sitios externos
             </h2>
             <p className="text-piedra">
               Cada oferta incluye un enlace al sitio oficial de la institución
@@ -75,18 +108,19 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-lg font-display font-bold text-azul mb-3">
-              4. Seguridad
+              5. Seguridad
             </h2>
             <p className="text-piedra">
               Adoptamos medidas razonables para proteger los datos alojados en
               nuestros sistemas y para garantizar que la información publicada
-              refleje fielmente la fuente original.
+              refleje fielmente la fuente original. Las contraseñas se almacenan
+              cifradas y el sitio opera íntegramente sobre HTTPS.
             </p>
           </section>
 
           <section>
             <h2 className="text-lg font-display font-bold text-azul mb-3">
-              5. Cambios a esta política
+              6. Cambios a esta política
             </h2>
             <p className="text-piedra">
               Podemos actualizar esta política periódicamente. Los cambios se
@@ -96,7 +130,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-lg font-display font-bold text-azul mb-3">
-              6. Contacto
+              7. Contacto
             </h2>
             <p className="text-piedra">
               Si tiene preguntas sobre esta política, escríbanos a través de los

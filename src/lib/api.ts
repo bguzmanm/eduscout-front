@@ -1,3 +1,5 @@
+import type { Attribution } from './attribution';
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
 // Política de caché ISR para datos públicos: se revalidan cada hora y los
@@ -208,6 +210,11 @@ export interface AlertsDistribution {
   manyAlerts: number;
 }
 
+export interface RegistrationsBySource {
+  source: string;
+  count: number;
+}
+
 export interface AdminCandidateStats {
   totalCandidates: number;
   candidatesWithCv: number;
@@ -222,6 +229,7 @@ export interface AdminCandidateStats {
   registeredLast7d: number;
   registeredLast30d: number;
   alertsDistribution: AlertsDistribution;
+  registrationsBySource: RegistrationsBySource[];
 }
 
 export async function getAdminCandidateStats(
@@ -412,7 +420,7 @@ async function candidateRequest<T>(
 }
 
 export function registerCandidate(
-  data: { name: string; email: string; password: string },
+  data: { name: string; email: string; password: string } & Attribution,
 ): Promise<CandidateAuthResponse> {
   return candidateRequest<CandidateAuthResponse>('/api/candidates/register', {
     method: 'POST',
