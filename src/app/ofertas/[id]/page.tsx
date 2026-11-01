@@ -86,6 +86,43 @@ function formatDate(dateStr: string | null): string | null {
   }
 }
 
+function formatExpiration(dateStr: string | null): string | null {
+  if (!dateStr) return null;
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return null;
+    const offset = date.getTimezoneOffset();
+    const utcTime = date.getTime() - (offset * 60 * 1000);
+    const iso = new Date(utcTime).toISOString();
+    return iso;
+  } catch {
+    return null;
+  }
+}
+
+function parseBaseSalary(range: string): number | undefined {
+  // Parse ranges like "30-50k" or "450.000 - 650.000 CLP"
+  const matches = range.match(/\d{1,3}(?:,\d{0,2})?\s*(CLP|USD)?\b(?=.*-)/);
+  if (!matches) return undefined;
+
+  // Extract number before the range (e.g., "30" from "30-50k")
+  const minMatch = range.match(/(\d{1,3}(?:,\d{0,2})?)\s*-.*$/);
+  if (!minMatch) return undefined;
+
+  const num = Number(minMatch[1].replace(',', '.'));
+  if (isNaN(num)) return undefined;
+
+  let base: number = num;
+
+  // Convert USD to CLP if the range contains USD
+  const hasUSD = /USD/i.test(range);
+  if (hasUSD) {
+    base = Math.round(base * 980);
+  }
+
+  return Number(base).toLocaleString('es-CL', { minimumSignificantDigits: 2 });
+}
+
 function isHtml(text: string): boolean {
   return /<[a-z][\s\S]*>/i.test(text);
 }
@@ -132,6 +169,16 @@ export default async function OfertaDetailPage({ params, searchParams }: Props) 
           description: stripHtml(job.description ?? job.requirements ?? ''),
           datePosted: job.publishedAt ?? job.createdAt,
           ...(job.deadline ? { validThrough: job.deadline } : {}),
+          ...(job.ubicacion ? { expirationDate: formatExpiration(job.ubicacion.fechaFin) } : {}),
+          ...(job.salaryRange ? { baseSalary: parseBaseSalary(job.salaryRange) } : {}),
+          ...(job.ubicacion ? {
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: job.ubicacion.direccion, // exact street address (e.g., "Av. Providencia 1234")
+              addressLocality: job.ubicacion.nombreComuna, // comuna (e.g., "Providencia")
+              postalCode: job.ubicacion.codigoPostal ? `#${job.ubicacion.codigoPostal}` : undefined,
+            },
+          } : {}),
           ...(employmentType ? { employmentType } : {}),
           ...(job.department ? { department: job.department } : {}),
           hiringOrganization: {
@@ -140,12 +187,14 @@ export default async function OfertaDetailPage({ params, searchParams }: Props) 
           },
           jobLocation: {
             '@type': 'Place',
-            ...(job.location ? { name: job.location } : {}),
-            address: {
+            name: `${(job.company ?? job.sourceName) || job.title}`.split('·')[0],
+            ...(job.location ? { address: {} } : {}),
+            address: job.ubicacion ? {
               '@type': 'PostalAddress',
-              addressCountry: 'CL',
-              ...(job.region ? { addressRegion: job.region } : {}),
-            },
+              streetAddress: job.ubicacion.direccion, // exact street address (e.g., "Av. Providencia 1234")
+              addressLocality: job.ubicacion.nombreComuna, // comuna (e.g., "Providencia")
+              postalCode: job.ubicacion.codigoPostal ? `#${job.ubicacion.codigoPostal}` : undefined,
+            } : undefined,
           },
           url: `${SITE_URL}/ofertas/${job.id}`,
         }}
@@ -193,7 +242,7 @@ export default async function OfertaDetailPage({ params, searchParams }: Props) 
             {job.jobType && (
               <span className="flex items-center gap-1.5">
                 <Clock className="w-4 h-4" />
-                {job.jobType}
+                {job.jobCategory}
               </span>
             )}
             {job.publishedAt && (
