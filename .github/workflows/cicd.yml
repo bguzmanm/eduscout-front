@@ -33,7 +33,10 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          platforms: linux/amd64,linux/arm64
+          # Producción (Oracle E2.1.Micro) es amd64. La leg arm64 falla al
+          # compilar `next/font/google` bajo QEMU (Turbopack no resuelve el
+          # módulo interno de fuentes), así que se publica solo amd64.
+          platforms: linux/amd64
           push: true
           tags: |
             ghcr.io/${{ github.repository }}:latest
