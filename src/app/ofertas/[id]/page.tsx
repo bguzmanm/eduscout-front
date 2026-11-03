@@ -175,54 +175,60 @@ export default async function OfertaDetailPage({ params, searchParams }: Props) 
   const addressLocality = toAddressLocality(job.location);
   const salaryMin = parseSalaryMin(job.salaryRange);
 
+  // Google rechaza JobPosting de ofertas cerradas. Las vencidas se desactivan
+  // al terminar cada scraping (ver ScrapingService), así que basta isActive.
+  const isOpen = job.isActive;
+
   return (
     <div className="pt-16">
-      <JsonLd
-        data={{
-          '@context': 'https://schema.org',
-          '@type': 'JobPosting',
-          title: job.title,
-          description: jobPostingDescription(job),
-          datePosted: toIsoDate(job.publishedAt) ?? toIsoDate(job.createdAt),
-          validThrough: toValidThrough(job),
-          ...(employmentType ? { employmentType } : {}),
-          ...(job.department ? { department: job.department } : {}),
-          identifier: {
-            '@type': 'PropertyValue',
-            name: job.sourceName,
-            value: job.externalId,
-          },
-          hiringOrganization: {
-            '@type': 'Organization',
-            name: job.company ?? job.sourceName,
-          },
-          jobLocation: {
-            '@type': 'Place',
-            ...(job.location ? { name: job.location } : {}),
-            address: {
-              '@type': 'PostalAddress',
-              ...(addressLocality ? { addressLocality } : {}),
-              ...(job.region ? { addressRegion: job.region } : {}),
-              ...(job.postalCode ? { postalCode: job.postalCode } : {}),
-              addressCountry: 'CL',
+      {isOpen && (
+        <JsonLd
+          data={{
+            '@context': 'https://schema.org',
+            '@type': 'JobPosting',
+            title: job.title,
+            description: jobPostingDescription(job),
+            datePosted: toIsoDate(job.publishedAt) ?? toIsoDate(job.createdAt),
+            validThrough: toValidThrough(job),
+            ...(employmentType ? { employmentType } : {}),
+            ...(job.department ? { department: job.department } : {}),
+            identifier: {
+              '@type': 'PropertyValue',
+              name: job.sourceName,
+              value: job.externalId,
             },
-          },
-          ...(salaryMin
-            ? {
-                baseSalary: {
-                  '@type': 'MonetaryAmount',
-                  currency: 'CLP',
-                  value: {
-                    '@type': 'QuantitativeValue',
-                    value: salaryMin,
-                    unitText: 'MONTH',
+            hiringOrganization: {
+              '@type': 'Organization',
+              name: job.company ?? job.sourceName,
+            },
+            jobLocation: {
+              '@type': 'Place',
+              ...(job.location ? { name: job.location } : {}),
+              address: {
+                '@type': 'PostalAddress',
+                ...(addressLocality ? { addressLocality } : {}),
+                ...(job.region ? { addressRegion: job.region } : {}),
+                ...(job.postalCode ? { postalCode: job.postalCode } : {}),
+                addressCountry: 'CL',
+              },
+            },
+            ...(salaryMin
+              ? {
+                  baseSalary: {
+                    '@type': 'MonetaryAmount',
+                    currency: 'CLP',
+                    value: {
+                      '@type': 'QuantitativeValue',
+                      value: salaryMin,
+                      unitText: 'MONTH',
+                    },
                   },
-                },
-              }
-            : {}),
-          url: `${SITE_URL}/ofertas/${job.id}`,
-        }}
-      />
+                }
+              : {}),
+            url: `${SITE_URL}/ofertas/${job.id}`,
+          }}
+        />
+      )}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <Link
           href={backUrl}
