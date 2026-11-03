@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Sen, Work_Sans, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import Navbar from "@/components/Navbar";
 import RibbonBadge from "@/components/RibbonBadge";
 import Footer from "@/components/Footer";
@@ -8,22 +8,27 @@ import { SavedJobsProvider } from "@/components/SavedJobsProvider";
 import { SITE_URL, SITE_NAME, SITE_TITLE, SITE_DESCRIPTION } from "@/lib/site";
 import "./globals.css";
 
-const display = Sen({
-  subsets: ["latin"],
+// Las fuentes se empaquetan en src/app/fonts para que el build no dependa de
+// descargarlas de Google (fallaba de forma intermitente en CI/Docker).
+const display = localFont({
+  src: "./fonts/sen-latin.woff2",
   variable: "--font-display",
-  weight: ["500", "600", "700", "800"],
+  weight: "500 800",
+  display: "swap",
 });
 
-const body = Work_Sans({
-  subsets: ["latin"],
+const body = localFont({
+  src: "./fonts/work-sans-latin.woff2",
   variable: "--font-sans",
-  weight: ["400", "500", "600"],
+  weight: "400 600",
+  display: "swap",
 });
 
-const mono = JetBrains_Mono({
-  subsets: ["latin"],
+const mono = localFont({
+  src: "./fonts/jetbrains-mono-latin.woff2",
   variable: "--font-mono",
-  weight: ["400", "500"],
+  weight: "400 500",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
