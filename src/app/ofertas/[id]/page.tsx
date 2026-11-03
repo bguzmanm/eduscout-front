@@ -41,6 +41,57 @@ function toEmploymentType(jobType: string | null): string | undefined {
   return undefined;
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Fecha ISO 8601 con zona horaria; `undefined` si el dato no es válido. */
+function toIsoDate(dateStr: string | null): string | undefined {
+  if (!dateStr) return undefined;
+  const date = new Date(dateStr);
+  return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
+}
+
+/**
+ * Google exige `validThrough` en todo JobPosting. Si la oferta no trae fecha
+ * límite se estima 30 días desde la publicación (o desde hoy si tampoco hay
+ * fecha de publicación).
+ */
+function toValidThrough(job: Job): string {
+  const deadline = toIsoDate(job.deadline);
+  if (deadline) return deadline;
+
+  const published = job.publishedAt ? new Date(job.publishedAt) : new Date();
+  const base = Number.isNaN(published.getTime()) ? new Date() : published;
+  return new Date(base.getTime() + 30 * DAY_MS).toISOString();
+}
+
+/** "Providencia, Metropolitana" → "Providencia" (comuna). */
+function toAddressLocality(location: string | null): string | undefined {
+  if (!location) return undefined;
+  const locality = location.split(',')[0]?.trim();
+  return locality || undefined;
+}
+
+/**
+ * Los adapters guardan el sueldo como "$1.500.000 - $2.000.000" o
+ * "$1.500.000" (CLP, punto como separador de miles). Google solo acepta un
+ * valor único en `baseSalary`, así que se informa el mínimo.
+ */
+function parseSalaryMin(salaryRange: string | null): number | undefined {
+  if (!salaryRange) return undefined;
+  const match =
+    salaryRange.match(/\$\s*([\d.]+)/) ?? salaryRange.match(/([\d.]{4,})/);
+  if (!match) return undefined;
+
+  const value = Number(match[1].replace(/\./g, ''));
+  return Number.isFinite(value) && value > 0 ? value : undefined;
+}
+
+/** Descripción completa para JobPosting (Google no acepta texto truncado). */
+function jobPostingDescription(job: Job): string {
+  const raw = stripHtml(job.description ?? job.requirements ?? '');
+  return raw || jobDescription(job);
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const jobId = parseInt(id, 10);
@@ -86,43 +137,6 @@ function formatDate(dateStr: string | null): string | null {
   }
 }
 
-function formatExpiration(dateStr: string | null): string | null {
-  if (!dateStr) return null;
-  try {
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return null;
-    const offset = date.getTimezoneOffset();
-    const utcTime = date.getTime() - (offset * 60 * 1000);
-    const iso = new Date(utcTime).toISOString();
-    return iso;
-  } catch {
-    return null;
-  }
-}
-
-function parseBaseSalary(range: string): number | undefined {
-  // Parse ranges like "30-50k" or "450.000 - 650.000 CLP"
-  const matches = range.match(/\d{1,3}(?:,\d{0,2})?\s*(CLP|USD)?\b(?=.*-)/);
-  if (!matches) return undefined;
-
-  // Extract number before the range (e.g., "30" from "30-50k")
-  const minMatch = range.match(/(\d{1,3}(?:,\d{0,2})?)\s*-.*$/);
-  if (!minMatch) return undefined;
-
-  const num = Number(minMatch[1].replace(',', '.'));
-  if (isNaN(num)) return undefined;
-
-  let base: number = num;
-
-  // Convert USD to CLP if the range contains USD
-  const hasUSD = /USD/i.test(range);
-  if (hasUSD) {
-    base = Math.round(base * 980);
-  }
-
-  return Number(base).toLocaleString('es-CL', { minimumSignificantDigits: 2 });
-}
-
 function isHtml(text: string): boolean {
   return /<[a-z][\s\S]*>/i.test(text);
 }
@@ -158,6 +172,8 @@ export default async function OfertaDetailPage({ params, searchParams }: Props) 
   const backUrl = from?.startsWith('/ofertas') ? from : '/ofertas';
 
   const employmentType = toEmploymentType(job.jobType);
+  const addressLocality = toAddressLocality(job.location);
+  const salaryMin = parseSalaryMin(job.salaryRange);
 
   return (
     <div className="pt-16">
@@ -166,36 +182,44 @@ export default async function OfertaDetailPage({ params, searchParams }: Props) 
           '@context': 'https://schema.org',
           '@type': 'JobPosting',
           title: job.title,
-          description: stripHtml(job.description ?? job.requirements ?? ''),
-          datePosted: job.publishedAt ?? job.createdAt,
-          ...(job.deadline ? { validThrough: job.deadline } : {}),
-          ...(job.ubicacion ? { expirationDate: formatExpiration(job.ubicacion.fechaFin) } : {}),
-          ...(job.salaryRange ? { baseSalary: parseBaseSalary(job.salaryRange) } : {}),
-          ...(job.ubicacion ? {
-            address: {
-              '@type': 'PostalAddress',
-              streetAddress: job.ubicacion.direccion, // exact street address (e.g., "Av. Providencia 1234")
-              addressLocality: job.ubicacion.nombreComuna, // comuna (e.g., "Providencia")
-              postalCode: job.ubicacion.codigoPostal ? `#${job.ubicacion.codigoPostal}` : undefined,
-            },
-          } : {}),
+          description: jobPostingDescription(job),
+          datePosted: toIsoDate(job.publishedAt) ?? toIsoDate(job.createdAt),
+          validThrough: toValidThrough(job),
           ...(employmentType ? { employmentType } : {}),
           ...(job.department ? { department: job.department } : {}),
+          identifier: {
+            '@type': 'PropertyValue',
+            name: job.sourceName,
+            value: job.externalId,
+          },
           hiringOrganization: {
             '@type': 'Organization',
             name: job.company ?? job.sourceName,
           },
           jobLocation: {
             '@type': 'Place',
-            name: `${(job.company ?? job.sourceName) || job.title}`.split('·')[0],
-            ...(job.location ? { address: {} } : {}),
-            address: job.ubicacion ? {
+            ...(job.location ? { name: job.location } : {}),
+            address: {
               '@type': 'PostalAddress',
-              streetAddress: job.ubicacion.direccion, // exact street address (e.g., "Av. Providencia 1234")
-              addressLocality: job.ubicacion.nombreComuna, // comuna (e.g., "Providencia")
-              postalCode: job.ubicacion.codigoPostal ? `#${job.ubicacion.codigoPostal}` : undefined,
-            } : undefined,
+              ...(addressLocality ? { addressLocality } : {}),
+              ...(job.region ? { addressRegion: job.region } : {}),
+              ...(job.postalCode ? { postalCode: job.postalCode } : {}),
+              addressCountry: 'CL',
+            },
           },
+          ...(salaryMin
+            ? {
+                baseSalary: {
+                  '@type': 'MonetaryAmount',
+                  currency: 'CLP',
+                  value: {
+                    '@type': 'QuantitativeValue',
+                    value: salaryMin,
+                    unitText: 'MONTH',
+                  },
+                },
+              }
+            : {}),
           url: `${SITE_URL}/ofertas/${job.id}`,
         }}
       />
@@ -242,7 +266,7 @@ export default async function OfertaDetailPage({ params, searchParams }: Props) 
             {job.jobType && (
               <span className="flex items-center gap-1.5">
                 <Clock className="w-4 h-4" />
-                {job.jobCategory}
+                {job.jobType}
               </span>
             )}
             {job.publishedAt && (

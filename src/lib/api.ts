@@ -29,12 +29,12 @@ export interface Job {
   company: string | null;
   department: string | null;
   location: string | null;
-  addressLocation: (string | { city?: string | null; region?: string | null; streetAddress?: string | null; postalCode?: string | null }) | null;
   region: string | null;
-  jobCategory: string | null;
+  jobType: string | null;
   description: string | null;
   requirements: string | null;
   salaryRange: string | null;
+  postalCode: string | null;
   publishedAt: string | null;
   deadline: string | null;
   applyUrl: string;
@@ -44,21 +44,6 @@ export interface Job {
   sourceName: string;
   sourceSlug: string;
   sourceLogoUrl: string | null;
-
-  // Address fields (from ubicacion)
-  ubiDireccion?: string | null;
-  ubiComuna?: string | null;
-  ubiCodigoPostal?: string | null;
-
-  // Salary fields (from sueldo)
-  ubiFechaFin?: string | null;
-
-  // Salary from sueldo object (if available)
-  sueldo?: {
-    base: number | null;
-    empresa: (number | null)[];
-    empresaMin?: number | null;
-  } | null;
 }
 
 export interface Source {
