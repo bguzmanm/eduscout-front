@@ -33,9 +33,8 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          # Producción (Oracle E2.1.Micro) es amd64. La leg arm64 falla al
-          # compilar `next/font/google` bajo QEMU (Turbopack no resuelve el
-          # módulo interno de fuentes), así que se publica solo amd64.
+          # Producción (Oracle E2.1.Micro) es amd64; no se publica arm64 para no
+          # duplicar tiempo de build bajo QEMU.
           platforms: linux/amd64
           push: true
           tags: |
